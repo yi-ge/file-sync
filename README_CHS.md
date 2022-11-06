@@ -1,4 +1,4 @@
-# `file-sync` is a file sync command
+# `file-sync` 是一个文件同步命令
 
 [![license](https://img.shields.io/github/license/yi-ge/file-sync.svg?style=flat-square)](https://github.com/yi-ge/file-sync/blob/master/LICENSE)
 [![GitHub Actions](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fyi-ge%2Ffile-sync%2Fbadge%3Fref%3Dmain&style=flat-square)](https://actions-badge.atrox.dev/yi-ge/file-sync/goto?ref=main)
@@ -6,12 +6,12 @@
 [![Coveralls github](https://img.shields.io/coveralls/github/yi-ge/file-sync?style=flat-square)](https://coveralls.io/github/yi-ge/file-sync?branch=main)
 [![GitHub last commit](https://img.shields.io/github/last-commit/yi-ge/file-sync.svg?style=flat-square)](https://github.com/yi-ge/file-sync)
 
-[简体中文](README_CHS.md)
+[ENGLISH](README.md)
 
-Automatically sync single file. Sync `.env` file or `.config` file for single user.
+自动同步单个文件。为单个用户同步 `.env` 或 `.config` 文件。
 
-The design principle of `file-sync`: the server is not trusted, the client (local) is trusted.
+`file-sync`设计原则：服务器是不可信的，客户端（本地）是可信的。
 
-## Install
+## 安装
 
-## Usage
+## 使用
