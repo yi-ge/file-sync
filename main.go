@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -22,10 +21,64 @@ type program struct {
 
 func (p *program) Start(s service.Service) error {
 	if service.Interactive() {
-		logger.Info("Running in terminal.")
+		// logger.Info("Running in terminal.")
+
+		var language string
+
 		app := &cli.App{
-			Name:  "boom",
-			Usage: "make an explosive entrance",
+			Name:  "file-sync",
+			Usage: "Automatically sync single file.",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:        "lang",
+					Value:       "english",
+					Usage:       "language for the greeting",
+					Destination: &language,
+				},
+			},
+			Commands: []*cli.Command{
+				{
+					Name:    "add",
+					Aliases: []string{"a"},
+					Usage:   "add a task to the list",
+					Action: func(cCtx *cli.Context) error {
+						fmt.Println("added task: ", cCtx.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:    "complete",
+					Aliases: []string{"c"},
+					Usage:   "complete a task on the list",
+					Action: func(cCtx *cli.Context) error {
+						fmt.Println("completed task: ", cCtx.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:    "template",
+					Aliases: []string{"t"},
+					Usage:   "options for task templates",
+					Subcommands: []*cli.Command{
+						{
+							Name:  "add",
+							Usage: "add a new template",
+							Action: func(cCtx *cli.Context) error {
+								fmt.Println("new task template: ", cCtx.Args().First())
+								return nil
+							},
+						},
+						{
+							Name:  "remove",
+							Usage: "remove an existing template",
+							Action: func(cCtx *cli.Context) error {
+								fmt.Println("removed task template: ", cCtx.Args().First())
+								return nil
+							},
+						},
+					},
+				},
+			},
 			Action: func(*cli.Context) error {
 				fmt.Println("boom! I say!")
 				return nil
@@ -35,6 +88,8 @@ func (p *program) Start(s service.Service) error {
 		if err := app.Run(os.Args); err != nil {
 			log.Fatal(err)
 		}
+
+		os.Exit(0)
 	} else {
 		logger.Info("Running under service manager.")
 	}
@@ -72,16 +127,16 @@ func (p *program) Stop(s service.Service) error {
 //	Handle service controls (optional).
 //	Run the service.
 func main() {
-	svcFlag := flag.String("service", "", "Control the system service.")
-	flag.Parse()
+	// svcFlag := flag.String("service", "", "Control the system service.")
+	// flag.Parse()
 
 	options := make(service.KeyValue)
 	options["Restart"] = "on-success"
 	options["SuccessExitStatus"] = "1 2 8 SIGKILL"
 	svcConfig := &service.Config{
-		Name:        "GoServiceExampleLogging",
-		DisplayName: "Go Service Example for Logging",
-		Description: "This is an example Go service that outputs log messages.",
+		Name:        "file-sync",
+		DisplayName: "File-sync service",
+		Description: "The file-sync tool service.",
 		Dependencies: []string{
 			"Requires=network.target",
 			"After=network-online.target syslog.target"},
@@ -108,14 +163,14 @@ func main() {
 		}
 	}()
 
-	if len(*svcFlag) != 0 {
-		err := service.Control(s, *svcFlag)
-		if err != nil {
-			log.Printf("Valid actions: %q\n", service.ControlAction)
-			log.Fatal(err)
-		}
-		return
-	}
+	// if len(*svcFlag) != 0 {
+	// 	err := service.Control(s, *svcFlag)
+	// 	if err != nil {
+	// 		log.Printf("Valid actions: %q\n", service.ControlAction)
+	// 		log.Fatal(err)
+	// 	}
+	// 	return
+	// }
 	err = s.Run()
 	if err != nil {
 		logger.Error(err)

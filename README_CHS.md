@@ -15,3 +15,19 @@
 ## 安装
 
 ## 使用
+
+### 设置服务器URL
+
+```bash
+file-sync --config https://example.com
+```
+
+### 登录/注册设备
+
+使用您的邮箱登录
+
+```bash
+file-sync --login email@example.com
+```
+
+将会自动生成设备地址。
