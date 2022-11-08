@@ -77,3 +77,37 @@ file-sync add <file id> <file path>
 ```bash
 file-sync remove <file id>
 ```
+
+注意，这将会移除该文件所有的同步项目。
+
+### 移除单个设备的文件同步项
+
+```bash
+file-sync remove <file id> <number>
+```
+
+或
+
+```bash
+file-sync remove <file id> <device id>
+```
+
+提示：所有的`<device id>`均可用简写。
+
+## 服务器自托管
+
+### Docker
+
+```bash
+docker run xx:file-sync-server
+```
+
+### PHP
+
+## 关于安全性
+
+按照`服务器是不可信的`的设计原则，服务器中存储的数据均为加密数据。由于`file-sync`使用了非对称加密且在外网使用的时候配合SSL，在传输过程中也是安全的。
+
+服务器中以加密的形式保存所有版本的文件。
+
+如果在编辑文件的时候处于离线状态，`file-sync`会自动记录最后完成编辑的时间，待接入网络后与服务器中的版本进行同步。在此期间，如果在另外一台设备中编辑了同一个文件且编辑内容不一致，将会不可避免的产生冲突，`file-sync`不会自动合并冲突，但是会自动应用最后一个修改的版本，产生冲突的版本将会以`文件名.日期.backup`的方式存储到所有同步设备同一目录下。
