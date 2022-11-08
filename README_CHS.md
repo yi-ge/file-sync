@@ -22,12 +22,58 @@
 file-sync --config https://example.com
 ```
 
+默认使用命令作者提供的免费公共服务器：<https://file-sync.openapi.site/>
+
 ### 登录/注册设备
 
-使用您的邮箱登录
+使用您的邮箱登录，将自动注册当前设备。
 
 ```bash
 file-sync --login email@example.com
 ```
 
-将会自动生成设备地址。
+### 列出设备
+
+```bash
+file-sync list --device
+```
+
+### 移除当前设备
+
+```bash
+file-sync --remove-device
+```
+
+移除该设备后，将会删除该设备中所有的配置信息（但不包括用户文件）。此设备如需再次同步文件，需要重新登录进行设备注册。
+
+### 移除指定设备
+
+```bash
+file-sync --remove-device <device id>
+```
+
+移除该设备后，该设备下次同步时将会删除该设备中所有的配置信息（但不包括用户文件）。此设备如需再次同步文件，需要重新登录进行设备注册。
+
+### 列出文件列表
+
+```bash
+file-sync list
+```
+
+### 添加文件同步项
+
+```bash
+file-sync add <file path>
+```
+
+### 添加已经存在的文件同步项
+
+```bash
+file-sync add <file id> <file path>
+```
+
+### 移除文件同步项
+
+```bash
+file-sync remove <file id>
+```
