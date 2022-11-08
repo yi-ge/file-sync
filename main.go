@@ -86,7 +86,7 @@ func (p *program) Start(s service.Service) error {
 							Name:  "enable",
 							Usage: "set to boot service",
 							Action: func(cCtx *cli.Context) error {
-								fmt.Println("new task template: ", cCtx.Args().First())
+								s.Install()
 								return nil
 							},
 						},
@@ -94,7 +94,7 @@ func (p *program) Start(s service.Service) error {
 							Name:  "disable",
 							Usage: "disable the service",
 							Action: func(cCtx *cli.Context) error {
-								fmt.Println("removed task template: ", cCtx.Args().First())
+								s.Uninstall()
 								return nil
 							},
 						},
@@ -102,7 +102,7 @@ func (p *program) Start(s service.Service) error {
 							Name:  "start",
 							Usage: "start the file sync service",
 							Action: func(cCtx *cli.Context) error {
-								fmt.Println("removed task template: ", cCtx.Args().First())
+								s.Start()
 								return nil
 							},
 						},
@@ -110,7 +110,20 @@ func (p *program) Start(s service.Service) error {
 							Name:  "stop",
 							Usage: "stop the file sync service",
 							Action: func(cCtx *cli.Context) error {
-								fmt.Println("removed task template: ", cCtx.Args().First())
+								s.Stop()
+								return nil
+							},
+						},
+						{
+							Name:  "status",
+							Usage: "get the service status",
+							Action: func(cCtx *cli.Context) error {
+								status, err := s.Status()
+								if err != nil {
+									fmt.Print("Info: ", err.Error())
+									return nil
+								}
+								fmt.Print(status)
 								return nil
 							},
 						},

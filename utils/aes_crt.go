@@ -1,17 +1,13 @@
-package main
+package utils
 
 import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"fmt"
 )
 
 // 加密
 func aesCtrEncrypt(plainText []byte, key []byte) ([]byte, error) {
-	//TODO
-	//aes包，go内置标准库
-
 	//1. 创建cipher.Block接口
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -30,26 +26,4 @@ func aesCtrEncrypt(plainText []byte, key []byte) ([]byte, error) {
 // 解密
 func aesCtrDecrypt(encryptData []byte, key []byte) ([]byte, error) {
 	return aesCtrEncrypt(encryptData, key)
-}
-
-func aes_crt_test() {
-	src := "你好"
-	fmt.Println("原文：", src)
-	//16byte密钥
-	key := []byte("1234567887654321")
-	//调用加密函数
-	encryptData, err := aesCtrEncrypt([]byte(src), key)
-	if err != nil {
-		fmt.Println("err:", err)
-		return
-	}
-	fmt.Printf("密文: %x\n", encryptData)
-
-	//调用解密函数
-	plainText, err := aesCtrDecrypt(encryptData, key)
-	if err != nil {
-		fmt.Println("err:", err)
-		return
-	}
-	fmt.Printf("解密后明文: %s\n", plainText)
 }
