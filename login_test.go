@@ -7,5 +7,5 @@ import (
 
 func TestLogin(t *testing.T) {
 	t.Log(os.Environ())
-	login()
+	// login()
 }

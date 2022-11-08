@@ -6,13 +6,16 @@ import (
 	"os"
 	"time"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/kardianos/service"
 	"github.com/urfave/cli/v2"
 )
 
 var (
-	isDev  = os.Getenv("GO_ENV") == "development"
-	logger service.Logger
+	isDev    = os.Getenv("GO_ENV") == "development"
+	logger   service.Logger
+	apiURL   string
+	password string
 )
 
 // Program structures.
@@ -39,6 +42,33 @@ func (p *program) Start(s service.Service) error {
 					Name:        "login",
 					Value:       "",
 					Usage:       "login by email",
+					Destination: &email,
+					Action: func(ctx *cli.Context, s string) error {
+						password := ""
+						prompt := &survey.Password{
+							Message: "Please type your password",
+						}
+						survey.AskOne(prompt, &password)
+						hostname, err := os.Hostname()
+						if err != nil {
+							panic(err)
+						}
+
+						userHostname := ""
+						prompt2 := &survey.Input{
+							Message: "Please type your device name",
+							Default: hostname,
+						}
+						survey.AskOne(prompt2, &userHostname)
+
+						login(email, password, userHostname)
+						return nil
+					},
+				},
+				&cli.StringFlag{
+					Name:        "config",
+					Value:       "https://file-sync.openapi.site/",
+					Usage:       "HTTP API server URL",
 					Destination: &email,
 				},
 				&cli.StringFlag{

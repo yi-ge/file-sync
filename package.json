@@ -1,0 +1,10 @@
+{
+  "name": "file-sync-cli",
+  "version": "0.1.0",
+  "description": "Automatically sync single file.",
+  "main": "index.js",
+  "repository": "git@github.com:yi-ge/file-sync.git",
+  "author": "yi-ge <a@wyr.me>",
+  "license": "MIT",
+  "private": false
+}

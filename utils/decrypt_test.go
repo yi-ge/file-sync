@@ -1,0 +1,56 @@
+package utils
+
+import (
+	"fmt"
+	"strings"
+	"testing"
+)
+
+const (
+	rsaPublicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3CsRKp3+OAq3P2pbEp2/
+gEiewPw0TK+eh13hVhwj/xeqFumGj+9U/0v7mHq09ZpGYGgdOyqX5Qslzc/CEPj0
+pwVbcQoKfPFfPu4bn09uEikT9LRhfVstV1vmIOTLSsTF3d6j5WRrFsz0iMxmJOh+
+M2RT4CZtcShxqt5OA+qPJtFXIcC9wfkZN+s7HEaN+3XRGlrV8grY30CQsJcWF2hb
+xQaRVDVYxt3kS/EPQ7/PpmM8ylf6vyEehFomKhr8inIc9WK+fIh85MfmGO3q/WRs
+Wxt8nikMbGGQZovtg5wb4PFoG9Q7hikzfaO5jbSGn/q3/sGDRISoQ72h9JCQ5GFh
+NQIDAQAB
+-----END PUBLIC KEY-----`
+	rsaPublicKeyUpdate = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxEUN1DZZ/XU2J6+3EoCX
+6ZQExSyGrJlmcq2s4sxAqThJVGAv4BYqCQjnigUGaLF4+2khGHVXrx4LhwnW54iq
+V3V3Xq59H0Cj3oGGWgKxSOM62xxfizmc1Og/6uAwZTAX4oCsgx5SMaFQbAU5ensM
+VEX9CetXSGhc1bbS23kEHAkjJ0NryRl7DR/ilFKO5pAjTGEzP4aTkF/D3Eu3z15U
+wdkf2WisEsANVTEnNHu2qvdiXGzRSLNF4mVFNO3AsgfnbgXzlN0feQ1HbH+J7Ue5
+eHleCGhfS/PGFP3lQ4sA0hB4B/5eZ6ROo8YEuQiNTz+UMFteeGymTgFu2sOwLE10
+wQIDAQAB
+-----END PUBLIC KEY-----`
+	testSignData       = "tatFiqCI7sm8x1hbn7iOs6y9uVwHiymL8z/6yvUMSr9uWgrPa6AUDgzy2bNKISU4Nmrmpq4Tn3tUyxX4pKViUtK5whvM9AxJ5A7HJE1XMbQsD9U7UqykQ4V6+JNxx7T7EotDr3buQUUZCy+ESN+NnlPLgyYdaMHRWjR87qGTuVw8iUqypiSXV11MMQbtNc9B0cKc8X51c6yTM9MWE53TnqjOzBq2XjmUqf09VzeSTAm7B/RrblvRuB3CnK2sRY2NTmQRXMIXRyT/8lSzRKjj+bKi82HhNI/h6xNFeSzQFoAztbEUNJOBZ105wVEErBRxxisg0VolT1CeOIfYNXQHqA=="
+	testSignDataLong   = "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"
+	testSignDataUpdate = "oRnycPpUuGJadJ98xWDM5NhOxqRJPyNevPp6dHhv4h5fYSmaAPhwD/Qm42vJ15YR0Ll50DflM1OYDylnbBX8Ka+TDFOEm1urgRW2TSGKvS/ddymyU8kdZAdzfuQYRazUqk+6bpGx2THoZXA/s2TD1w20y/C98hEa1KVyQSYp86j3PqeyyQky2MlHqMz9Og/ZGuys2Hj/svLckPhSPBfXK1aKj5qIlHywnNao09ohpaxbMe6fKENZ4nRHY8BSVCBXWVek76JzlXkcHYWOpk4BkX3RlzIl6NHeka8X44d3bzQbZN/ntkQhwCMxt79FYiripenCJ5LT5xV9dOo+sui8jhpQR0mr7zFkpFnEyDUud1gWU9AHefk0RbEknc/pWDTiPatGwbgDxcMBdImb7cUAi2TTvs8q55HhLVi7SX3JLZPzlrKCibZ0/0G1i6Lyk7/xaCdXqUxTxUsxOHPP9LypUs7rmb7v+GVR60/CSVadQkYBppvxi4xbxxJfZTbk5qAW/AsjvJpvnER9UeV9rVeRo2XVCOo7aQ4GZzRa2TH9/XptGOHKq0q9coRSaUyFhHQi/yy1h/hVbb7dVIdbLJRlD9VW9lOX/WuqOatyoVoRU/Y40HStK4Igcv3Ifrry5JEZ49+XSSKHvQhZWKhI9VoG6llvnpyXOHqFLoGT2REEyHQ="
+)
+
+func TestPublicDecryptWithBase64(t *testing.T) {
+	data, _ := PublicDecryptWithBase64(testSignData, rsaPublicKey)
+	fmt.Println(string(data))
+	if string(data) != "1559905412000" {
+		t.Fatal("PublicDecryptWithBase64 Error.")
+	}
+}
+
+func TestPublicDecryptWithBase64WithLongString(t *testing.T) {
+	var target = `{"api-main":"https://server-0.sercretcore.cn/api/","api-main-public-key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxEUN1DZZ/XU2J6+3EoCX\n6ZQExSyGrJlmcq2s4sxAqThJVGAv4BYqCQjnigUGaLF4+2khGHVXrx4LhwnW54iq\nV3V3Xq59H0Cj3oGGWgKxSOM62xxfizmc1Og/6uAwZTAX4oCsgx5SMaFQbAU5ensM\nVEX9CetXSGhc1bbS23kEHAkjJ0NryRl7DR/ilFKO5pAjTGEzP4aTkF/D3Eu3z15U\nwdkf2WisEsANVTEnNHu2qvdiXGzRSLNF4mVFNO3AsgfnbgXzlN0feQ1HbH+J7Ue5\neHleCGhfS/PGFP3lQ4sA0hB4B/5eZ6ROo8YEuQiNTz+UMFteeGymTgFu2sOwLE10\nwQIDAQAB\n-----END PUBLIC KEY-----","api-back":"https://server-1.sercretcore.cn/api/","api-back-public-key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAst0vmK/47Jn9zGSs70z0\nSZRqup92q66xTCDdoNzae4ENvV3ow9NFCDXKnSGum6FmNpaIYWN6m1W0m8eV2mbo\ncDbSvCFBLvoT/LJKKs1DmT8LIUB16PR6MLGs4Ac/P2Sz43lxQHAlR+rhWETruPwF\nltisUKAj+G2JyR4QfyyMMSA6Izg7bhKVNP8MoXaRJjwwnsnnVLTmna05lN1QvtQ1\nmWCmo4DQrr1lDEdqG9nv5am3cXwR6I8xq2/47KG/BtcOS2ZqCES5em1Ou0sEtqhK\n2GBZ5pcTLzKl5YSPpjNIyZe1/plqPl+wWDH1ezaHrRNRayo8QXeglCZrjZtAlB+R\nQwIDAQAB\n-----END PUBLIC KEY-----","sign":"VYJlssgQD1/SQRHaaGxcgyh1zkdH9icM/IHK4Wiyjw3VPVBpkbg/EMbKyWdQAbzVuHPrl4SV+qRv2T5SYedV5TGtjbxgMdjCwqQZCpJfEl/HiBZtJ0lQ2xolSZN+SjJJ87r6JPBUCaZMOtctU6LIPIVTiy7p4zqM2CQ1WcnAYrMt58tOvdTejBrMRIovLxKNDea/FUHNZbSvfdETFdZwOFjS/pOo6tTzQk1XSl/M+IzBb4B4OwHkoqiGiyz7E8qBB5QHJj0xV7BWfi12mHTi4ragVSL24OrpJyxFnx0dZWv8s+qavaH2RhS8mzmC52dteq3qvuIamYFe7IDTHKHHEA==","timestamp":"1564218585000"}`
+	data, _ := PublicDecryptWithBase64(testSignDataLong, rsaPublicKey)
+	if strings.Compare(string(data), target) != 0 {
+		t.Fatal("TestPublicDecryptWithBase64WithLongString Error.")
+	}
+}
+
+func TestPublicDecryptWithBase64WithUpdateString(t *testing.T) {
+	var target = `{"haveNewVersion":false,"downloadURL":"","newVersion":"","md5":"","sign":"WctDDtDrk5XRpIJ//F3hsttXb3upB7Fq9emdmQYDc6MGd/pSA8KV6Z7e4VDcO/TetSSF0odCr3VPzZNvzHY/aCfNRGtg1GGo5iCTok2cE/FSBBi8bdj13geThAfSMxNh1OgbsxdiNSoJro/BAUXoHSLdjkcl+v9W/h6uqFgPijT2baxD/wvt3ewVxqRwKx25tv4WKv0zWxwNo1v0oOkozAiVwBLFHF/by0ECviGFQ5D0Fs1czDELC3e77Qo7TIOiZtE1YCpXGcTAGTQVZsTdauSvuY7UazZk+GgO3lpldBltTKdwYLGK+OyI5R258zzCeieJXn3sd9xjcG83sWkNTA==","timestamp":"1564233371099"}`
+	data, _ := PublicDecryptWithBase64(testSignDataUpdate, rsaPublicKeyUpdate)
+	// fmt.Println(string(data))
+	if strings.Compare(string(data), target) != 0 {
+		t.Fatal("TestPublicDecryptWithBase64WithUpdateString Error.")
+	}
+}
