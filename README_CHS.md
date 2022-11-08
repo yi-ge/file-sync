@@ -119,9 +119,10 @@ POST /device/add
 ```json
 {
   "email": sha1("example@example.com"),
-  "token": sha1("密码的sha256中的前64位取sha1"),
-  "publicKey": "",
-  "privateKey": ""
+  "machineId": sha1(sha256("machineId"))
+  "verify": sha1("密码的sha256中的前64位取sha1"),
+  "publicKey": "新生成的publicKey",
+  "privateKey": "密码的sha256中的第二段64位进行加密的私钥（私钥密码是第三段64位）"
 }
 ```
 
@@ -130,7 +131,10 @@ POST /device/add
 ```json
 {
   "status": 1,
-  "result": 1
+  "result": { // 该字段是密文数据。如果该字段是空，说明此用户已经存在但token不对，如果不为空，说明设备注册成功，需要通过密码的sha256中的第二段64位进行解密，如果解密后的内容中的publicKey和传输的publicKey相同，则说明该用户是新用户。如果不相同，说明该用户是老用户，则需要以返回回来的publicKey和privateKey为准。
+    "publicKey": "公钥",
+    "privateKey": "私钥"
+  }
 }
 ```
 
@@ -138,25 +142,66 @@ POST /device/add
 
 POST /device/list
 
+```json
+{
+  "token": "签名密码的sha256中的第四段64位"
+}
+```
+
 ### 移除设备
 
 POST /device/remove
+
+```json
+{
+  "token": "签名密码的sha256中的第四段64位",
+  "machineId": "签名sha1(sha256("machineId"))"
+}
+```
 
 ### 获取文件同步配置信息
 
 POST /file/list
 
+```json
+{
+  "token": "签名密码的sha256中的第四段64位"
+}
+```
+
 ### 设置文件配置
 
 POST /file/config
+
+```json
+{
+  "token": "签名密码的sha256中的第四段64位",
+  "fileId": "",
+  "path": ""
+}
+```
 
 ### 检查单个文件是否存在更新
 
 POST /file/check
 
+```json
+{
+  "token": "签名密码的sha256中的第四段64位",
+  "fileId": ""
+}
+```
+
 ### 下载/上载文件数据
 
 POST /file/sync
+
+```json
+{
+  "token": "签名密码的sha256中的第四段64位",
+  "fileId": ""
+}
+```
 
 ## 关于安全性
 

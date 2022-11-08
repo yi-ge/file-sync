@@ -10,7 +10,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var logger service.Logger
+var (
+	isDev  = os.Getenv("GO_ENV") == "development"
+	logger service.Logger
+)
 
 // Program structures.
 //
@@ -99,6 +102,7 @@ func (p *program) Start(s service.Service) error {
 	go p.run()
 	return nil
 }
+
 func (p *program) run() error {
 	logger.Infof("I'm running %v.", service.Platform())
 	ticker := time.NewTicker(2 * time.Second)
@@ -112,6 +116,7 @@ func (p *program) run() error {
 		}
 	}
 }
+
 func (p *program) Stop(s service.Service) error {
 	// Any work in Stop should be quick, usually a few seconds at most.
 	logger.Info("I'm Stopping!")
