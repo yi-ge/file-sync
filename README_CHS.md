@@ -14,6 +14,10 @@
 
 ## 安装
 
+```bash
+go install https://github.com/yi-ge/file-sync
+```
+
 ## 使用
 
 ### 设置服务器URL
@@ -103,6 +107,40 @@ docker run xx:file-sync-server
 ```
 
 ### PHP
+
+## 服务器端API
+
+`file-sync`程序目前使用`HTTP API`完成同步交互。目前~~已完成~~PHP版本的服务器端API。
+
+### 登录/注册用户并注册设备
+
+POST /device/add
+
+```json
+{
+  "email": sha1("example@example.com"),
+  "token": sha1("密码的sha256中的前64位取sha1"),
+  "publicKey": "",
+  "privateKey": ""
+}
+```
+
+返回：
+
+```json
+{
+  "status": 1,
+  "result": 1
+}
+```
+
+### 获取设备列表
+
+POST /device/list
+
+### 获取文件同步配置信息
+
+POST /device/config
 
 ## 关于安全性
 
