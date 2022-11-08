@@ -26,54 +26,89 @@ func (p *program) Start(s service.Service) error {
 	if service.Interactive() {
 		// logger.Info("Running in terminal.")
 
-		var language string
+		var (
+			email    string
+			deviceId string
+		)
 
 		app := &cli.App{
 			Name:  "file-sync",
 			Usage: "Automatically sync single file.",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:        "lang",
-					Value:       "english",
-					Usage:       "language for the greeting",
-					Destination: &language,
+					Name:        "login",
+					Value:       "",
+					Usage:       "login by email",
+					Destination: &email,
+				},
+				&cli.StringFlag{
+					Name:        "remove-device",
+					Aliases:     []string{"rd"},
+					Value:       "current device",
+					Usage:       "remove device by device id",
+					Destination: &deviceId,
 				},
 			},
 			Commands: []*cli.Command{
 				{
 					Name:    "add",
 					Aliases: []string{"a"},
-					Usage:   "add a task to the list",
+					Usage:   "Add a file to sync list",
 					Action: func(cCtx *cli.Context) error {
 						fmt.Println("added task: ", cCtx.Args().First())
 						return nil
 					},
 				},
 				{
-					Name:    "complete",
-					Aliases: []string{"c"},
-					Usage:   "complete a task on the list",
+					Name:    "list",
+					Aliases: []string{"l"},
+					Usage:   "Sync files list",
 					Action: func(cCtx *cli.Context) error {
 						fmt.Println("completed task: ", cCtx.Args().First())
 						return nil
 					},
 				},
 				{
-					Name:    "template",
-					Aliases: []string{"t"},
-					Usage:   "options for task templates",
+					Name:    "remove",
+					Aliases: []string{"r"},
+					Usage:   "Remove a file config in sync list",
+					Action: func(cCtx *cli.Context) error {
+						fmt.Println("completed task: ", cCtx.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:    "service",
+					Aliases: []string{"s"},
+					Usage:   "Control the system service",
 					Subcommands: []*cli.Command{
 						{
-							Name:  "add",
-							Usage: "add a new template",
+							Name:  "enable",
+							Usage: "set to boot service",
 							Action: func(cCtx *cli.Context) error {
 								fmt.Println("new task template: ", cCtx.Args().First())
 								return nil
 							},
 						},
 						{
-							Name:  "remove",
-							Usage: "remove an existing template",
+							Name:  "disable",
+							Usage: "disable the service",
+							Action: func(cCtx *cli.Context) error {
+								fmt.Println("removed task template: ", cCtx.Args().First())
+								return nil
+							},
+						},
+						{
+							Name:  "start",
+							Usage: "start the file sync service",
+							Action: func(cCtx *cli.Context) error {
+								fmt.Println("removed task template: ", cCtx.Args().First())
+								return nil
+							},
+						},
+						{
+							Name:  "stop",
+							Usage: "stop the file sync service",
 							Action: func(cCtx *cli.Context) error {
 								fmt.Println("removed task template: ", cCtx.Args().First())
 								return nil
