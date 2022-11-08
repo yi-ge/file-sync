@@ -76,6 +76,30 @@ file-sync add <file path>
 file-sync add <file id> <file path>
 ```
 
+### 设置为开机自启服务
+
+```bash
+file-sync enable
+```
+
+### 禁用开机自启服务
+
+```bash
+file-sync disable
+```
+
+### 启动同步服务
+
+```bash
+file-sync start
+```
+
+### 关闭同步服务
+
+```bash
+file-sync stop
+```
+
 ### 移除文件同步项
 
 ```bash
@@ -161,7 +185,7 @@ POST /device/remove
 
 ### 获取文件同步配置信息
 
-POST /file/list
+POST /file/config
 
 ```json
 {
@@ -176,11 +200,15 @@ POST /file/config
 ```json
 {
   "token": "签名密码的sha256中的第四段64位",
-  "fileId": "",
   "config": [
     {
-      "machineId":, "machineId",
-      "path": "私钥加密后的path"
+      "fileId": "",
+      "config": [
+        {
+          "machineId":, "machineId",
+          "path": "私钥加密后的path"
+        }
+      ]
     }
   ]
 }
