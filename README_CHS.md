@@ -138,9 +138,25 @@ POST /device/add
 
 POST /device/list
 
+### 移除设备
+
+POST /device/remove
+
 ### 获取文件同步配置信息
 
-POST /device/config
+POST /file/list
+
+### 设置文件配置
+
+POST /file/config
+
+### 检查单个文件是否存在更新
+
+POST /file/check
+
+### 下载/上载文件数据
+
+POST /file/sync
 
 ## 关于安全性
 
