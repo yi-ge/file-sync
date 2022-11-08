@@ -44,7 +44,6 @@ func (p *program) Start(s service.Service) error {
 					Usage:       "login by email",
 					Destination: &email,
 					Action: func(ctx *cli.Context, s string) error {
-						password := ""
 						prompt := &survey.Password{
 							Message: "Please type your password",
 						}
