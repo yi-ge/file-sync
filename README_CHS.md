@@ -177,7 +177,12 @@ POST /file/config
 {
   "token": "签名密码的sha256中的第四段64位",
   "fileId": "",
-  "path": ""
+  "config": [
+    {
+      "machineId":, "machineId",
+      "path": "私钥加密后的path"
+    }
+  ]
 }
 ```
 
@@ -188,7 +193,9 @@ POST /file/check
 ```json
 {
   "token": "签名密码的sha256中的第四段64位",
-  "fileId": ""
+  "fileId": "",
+  "sha256": "文件sha256",
+  "updateAt": "文件最后一次编辑时间"
 }
 ```
 
@@ -196,10 +203,15 @@ POST /file/check
 
 POST /file/sync
 
+不带"content"和"updateAt"为下载，否则是上载。
+
 ```json
 {
   "token": "签名密码的sha256中的第四段64位",
-  "fileId": ""
+  "fileId": "",
+  "sha256": "文件sha256",
+  "updateAt": "文件最后一次编辑时间"
+  "content": "私钥加密的文件内容"
 }
 ```
 
