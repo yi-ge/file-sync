@@ -2,12 +2,14 @@
 CLINAME=$(grep 'name' package.json | cut -d '"' -f4)
 VERSION=$(grep 'version' package.json | cut -d '"' -f4)
 NAME=$(echo ${CLINAME%????})
-echo "package common
+echo "// Do not modify this file.
+package config
+
 const (
   name = \"${NAME}\"
   version = \"${VERSION}\"
 )
-" >common/auto_config.go
+" >config/auto_config.go
 
 if ! [ -x "$(command -v upx)" ]; then
   echo 'Error: upx is not installed.'

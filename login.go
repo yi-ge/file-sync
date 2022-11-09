@@ -32,7 +32,7 @@ func login(email string, password string, hostname string) (newUser bool, public
 		return false, "", ""
 	}
 
-	secretData, err := utils.PublicDecryptWithBase64(jsoniter.Get(body, "result").ToString(), publicKey)
+	secretData, err := utils.RsaDecryptWithSha1Base64(jsoniter.Get(body, "result").ToString(), publicKey)
 
 	if err != nil {
 		logger.Errorf("Secret decrypt error: %s\n", err)

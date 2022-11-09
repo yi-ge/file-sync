@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -14,8 +15,68 @@ import (
 	"fmt"
 )
 
+// generateRSAKeypair returns a private RSA key pair object
+func generateRSAKeypair(keySize int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	if keySize == 0 {
+		keySize = 4096
+	}
+	// create our private and public key
+	privKey, err := rsa.GenerateKey(rand.Reader, keySize)
+	if err != nil {
+		return nil, nil, err
+	}
+	return privKey, &privKey.PublicKey, nil
+}
+
+// pemEncodeRSAPrivateKey creates a PEM from an RSA Private key, and optionally returns an encrypted version
+func pemEncodeRSAPrivateKey(privKey *rsa.PrivateKey, rsaPrivateKeyPassword string) (privKeyPEM *bytes.Buffer, b *bytes.Buffer) {
+	privKeyPEM = new(bytes.Buffer)
+	b = new(bytes.Buffer)
+
+	privateKeyBlock := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
+	}
+
+	pem.Encode(privKeyPEM, privateKeyBlock)
+
+	/*
+		Legacy encryption, insecure, replaced with AES-GCM encryption
+		if rsaPrivateKeyPassword != "" {
+			privateKeyBlock, _ = x509.EncryptPEMBlock(rand.Reader, privateKeyBlock.Type, privateKeyBlock.Bytes, []byte(rsaPrivateKeyPassword), x509.PEMCipherAES256)
+		}
+	*/
+
+	if rsaPrivateKeyPassword != "" {
+		encBytes := encryptBytes(privKeyPEM.Bytes(), rsaPrivateKeyPassword)
+		b.Write(encBytes)
+	}
+
+	return privKeyPEM, b
+}
+
+// pemToEncryptedBytes takes a PEM byte buffer and encrypts it
+func pemToEncryptedBytes(pem *bytes.Buffer, passphrase string) (b *bytes.Buffer) {
+	b = new(bytes.Buffer)
+
+	encBytes := encryptBytes(pem.Bytes(), passphrase)
+	b.Write(encBytes)
+
+	return b
+}
+
+// pemEncodeRSAPublicKey takes a DER formatted RSA Public Key object and converts it to PEM format
+func pemEncodeRSAPublicKey(caPubKey *rsa.PublicKey) *bytes.Buffer {
+	caPubKeyPEM := new(bytes.Buffer)
+	pem.Encode(caPubKeyPEM, &pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(caPubKey),
+	})
+	return caPubKeyPEM
+}
+
 // RSA公钥私钥产生
-func GenRsaKey() (prvkey, pubkey []byte) {
+func GenRsaKey() (publicKey, privatekey []byte) {
 	// 生成私钥文件
 	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
@@ -26,9 +87,8 @@ func GenRsaKey() (prvkey, pubkey []byte) {
 		Type:  "RSA PRIVATE KEY",
 		Bytes: derStream,
 	}
-	prvkey = pem.EncodeToMemory(block)
-	publicKey := &privateKey.PublicKey
-	derPkix, err := x509.MarshalPKIXPublicKey(publicKey)
+	privatekey = pem.EncodeToMemory(block)
+	derPkix, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +96,7 @@ func GenRsaKey() (prvkey, pubkey []byte) {
 		Type:  "PUBLIC KEY",
 		Bytes: derPkix,
 	}
-	pubkey = pem.EncodeToMemory(block)
+	publicKey = pem.EncodeToMemory(block)
 	return
 }
 
@@ -62,12 +122,12 @@ func RsaDecryptWithSha1Base64(encryptedData, privateKey string) (string, error) 
 
 // 签名：采用sha1算法进行签名并输出为hex格式（私钥PKCS8格式）
 func RsaSignWithSha1Hex(data string, prvKey string) (string, error) {
-	keyByts, err := hex.DecodeString(prvKey)
+	keyBytes, err := hex.DecodeString(prvKey)
 	if err != nil {
 		fmt.Println(err)
 		return "", err
 	}
-	privateKey, err := x509.ParsePKCS8PrivateKey(keyByts)
+	privateKey, err := x509.ParsePKCS8PrivateKey(keyBytes)
 	if err != nil {
 		fmt.Println("ParsePKCS8PrivateKey err", err)
 		return "", err
@@ -158,15 +218,15 @@ func RsaEncrypt(data, keyBytes []byte) []byte {
 	// 类型断言
 	pub := pubInterface.(*rsa.PublicKey)
 	//加密
-	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, pub, data)
+	cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, pub, data)
 	if err != nil {
 		panic(err)
 	}
-	return ciphertext
+	return cipherText
 }
 
 // 私钥解密
-func RsaDecrypt(ciphertext, keyBytes []byte) []byte {
+func RsaDecrypt(cipherText, keyBytes []byte) []byte {
 	//获取私钥
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
@@ -178,49 +238,9 @@ func RsaDecrypt(ciphertext, keyBytes []byte) []byte {
 		panic(err)
 	}
 	// 解密
-	data, err := rsa.DecryptPKCS1v15(rand.Reader, priv, ciphertext)
+	data, err := rsa.DecryptPKCS1v15(rand.Reader, priv, cipherText)
 	if err != nil {
 		panic(err)
 	}
 	return data
 }
-
-// var PKPW string
-// 	flag.StringVar(&PKPW, "pp", PKPW, "private key passphrase")
-// 	flag.Parse()
-// 	// Read the standard input
-// 	in, err := ioutil.ReadAll(os.Stdin)
-// 	if err != nil {
-// 		log.Fatalf("input file: %s", err)
-// 	}
-// 	pemData, err := ioutil.ReadFile("pri.key")
-// 	if err != nil {
-// 		log.Fatalf("read key file: %s", err)
-// 	}
-// 	// Extract the PEM-encoded data block
-// 	block, _ := pem.Decode(pemData)
-// 	if block == nil {
-// 		log.Fatalf("bad key data: %s", "not PEM-encoded")
-// 	}
-// 	if got, want := block.Type, "RSA PRIVATE KEY"; got != want {
-// 		log.Fatalf("unknown key type %q, want %q", got, want)
-// 	}
-// 	if PKPW != "" {
-// 		if decBlock, err := x509.DecryptPEMBlock(block, []byte(PKPW)); err != nil {
-// 			log.Fatalf("error decrypting pem file: %s", err.Error())
-// 		} else {
-// 			block.Bytes = decBlock
-// 		}
-// 	}
-// 	// Decode the RSA private key
-// 	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-// 	if err != nil {
-// 		log.Fatalf("bad private key: %s", err)
-// 	}
-// 	// Decrypt the data
-// 	out, err := rsa.DecryptPKCS1v15(rand.Reader, priv, in)
-// 	if err != nil {
-// 		log.Fatalf("decrypt: %s", err)
-// 	}
-// 	// Write data to output file
-// 	fmt.Fprint(os.Stdout, string(out))
