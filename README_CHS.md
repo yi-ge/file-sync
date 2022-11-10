@@ -34,7 +34,7 @@ go install https://github.com/yi-ge/file-sync
 file-sync --config https://example.com
 ```
 
-默认使用命令作者提供的免费公共服务器：<https://file-sync.openapi.site/>
+默认使用命令作者提供的免费公共服务器：<https://api.yizcore.xyz>
 
 ### 登录/注册设备
 
