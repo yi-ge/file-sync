@@ -140,6 +140,8 @@ docker run xx:file-sync-server
 
 ### PHP
 
+require PHP >= v5.4
+
 ## 服务器端API
 
 `file-sync`程序目前使用`HTTP API`完成同步交互。目前~~已完成~~PHP版本的服务器端API。

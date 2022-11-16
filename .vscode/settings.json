@@ -6,6 +6,7 @@
     "jsoniter",
     "kardianos",
     "machineid",
+    "Medoo",
     "urfave"
   ],
   "php.version": "v8.1"
