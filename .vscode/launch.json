@@ -12,7 +12,8 @@
       "port": 9003,
       "serverReadyAction": {
         "action": "openExternally"
-      }
+      },
+      "envfile": "./server/php/.env"
     },
     {
       "name": "Debug current script in console",

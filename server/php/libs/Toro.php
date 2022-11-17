@@ -2,7 +2,12 @@
 
 class Toro
 {
-  public static function serve($routes)
+  public static function serve(
+    $routes,
+    $options = [
+      'cors' => false
+    ]
+  )
   {
     ToroHook::fire('before_request', compact('routes'));
 
@@ -57,12 +62,20 @@ class Toro
     if ($handler_instance) {
 
       if (self::is_xhr_request() && method_exists($handler_instance, $request_method . '_xhr')) {
-        header('Content-type: application/json');
+        // Cross-Origin Resource Sharing (CORS)
+        if ($options['cors']) {
+          header('Access-Control-Allow-Headers: Authorization, DNT, User-Agent, Keep-Alive, Origin, X-Requested-With, Content-Type, Accept, x-clientid');
+          header('Access-Control-Allow-Methods: PUT, POST, GET, DELETE, OPTIONS');
+          header('Access-Control-Allow-Origin: *');
+        }
+
+        header('Content-Type: application/json; charset=utf-8');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
         header('Cache-Control: no-store, no-cache, must-revalidate');
         header('Cache-Control: post-check=0, pre-check=0', false);
         header('Pragma: no-cache');
+
         $request_method .= '_xhr';
       }
 
@@ -82,7 +95,7 @@ class Toro
 
   private static function is_xhr_request()
   {
-    return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
+    return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') || strpos($_SERVER['HTTP_ACCEPT'], "application/json") === 0 || (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], "application/json") === 0);
   }
 }
 
