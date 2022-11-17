@@ -2,15 +2,22 @@
   "cSpell.words": [
     "Aivazis",
     "apacheconf",
+    "appname",
     "clientid",
     "Cond",
+    "conjunctor",
+    "datas",
     "denisbrodbeck",
     "Infof",
     "jsoniter",
     "kardianos",
+    "keyname",
+    "LASTVAL",
     "machineid",
     "Medoo",
-    "urfave"
+    "NEWID",
+    "urfave",
+    "WSID"
   ],
   "php.version": "v8.1"
 }

@@ -2,7 +2,7 @@
 require_once 'config.php';
 require_once 'libs/Toro.php';
 
-class HelloHandler
+class HomeHandler
 {
   function get()
   {
@@ -12,14 +12,19 @@ class HelloHandler
   function get_xhr()
   {
     echo json_encode([
-      "status" => 200
+      "status" => 1
     ]);
   }
 }
 
 Toro::serve(
   array(
-    "/" => "HelloHandler",
+    "/" => "HomeHandler",
+    "/device/add" => "HomeHandler",
+    "/device/remove" => "HomeHandler",
+    "/file/config" => "HomeHandler",
+    "/file/check" => "HomeHandler",
+    "/file/sync" => "HomeHandler",
   ),
   [
     'cors' => true
