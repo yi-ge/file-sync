@@ -8,6 +8,8 @@
 
 [ENGLISH](README.md)
 
+⚠️⛔️ 此程序尚在开发！！！ ⛔️ ⚠️
+
 自动同步单个文件。为单个用户同步 `.env` 或 `config` 文件。
 
 `file-sync`是跨平台的，非常适合在你的多个设备中自动同步`.env`、`.bashrc`、`.profile`、`.zshrc`、`.ssh/config`之类的文件。
@@ -16,9 +18,9 @@
 
 ## 特性
 
-- 安全 - 你的数据以加密方式同步
-- 灵活 - 跨平台，在不同系统\不同路径\不同文件名\不同文件权限的情况下同步同一个文件的内容
-- 自动化 - 文件被自动同步，无需手工干预，你不会丢失任何数据
+- 安全 - 同步数据时，你的数据经过加密后进行传输
+- 灵活 - 支持跨平台工作。在不同系统\不同路径\不同文件名\不同文件权限的情况下同步同一个文件的内容
+- 自动化 - 文件被自动同步，无需手工干预，而且你不会丢失任何数据
 
 ## 安装
 
@@ -141,6 +143,59 @@ docker run xx:file-sync-server
 ### PHP
 
 require PHP >= v5.4
+
+#### Server Configuration
+
+##### Apache
+
+You may need to add the following snippet in your Apache HTTP server virtual host configuration or **.htaccess** file.
+
+```apacheconf
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond $1 !^(index\.php)
+RewriteRule ^(.*)$ /index.php/$1 [L]
+```
+
+Alternatively, if you’re lucky enough to be using a version of Apache greater than 2.2.15, then you can instead just use this one, single line:
+
+```apacheconf
+FallbackResource /index.php
+```
+
+##### IIS
+
+For IIS you will need to install URL Rewrite for IIS and then add the following rule to your `web.config`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <rewrite>
+          <rule name="Toro" stopProcessing="true">
+            <match url="^(.*)$" ignoreCase="false" />
+              <conditions logicalGrouping="MatchAll">
+                <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false" negate="true" />
+                <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
+                <add input="{R:1}" pattern="^(index\.php)" ignoreCase="false" negate="true" />
+              </conditions>
+            <action type="Rewrite" url="/index.php/{R:1}" />
+          </rule>
+        </rewrite>
+    </system.webServer>
+</configuration>
+```
+
+##### Nginx
+
+Under the `server` block of your virtual host configuration, you only need to add three lines.
+
+```conf
+location / {
+  try_files $uri $uri/ /index.php?$args;
+}
+```
 
 ## 服务器端API
 

@@ -1,5 +1,17 @@
 <?php
 
-echo "ok";
+require_once 'Toro.php';
 
-echo 1+2;
+class HelloHandler
+{
+  function get()
+  {
+    echo "Hello, world";
+  }
+}
+
+Toro::serve(
+  array(
+    "/" => "HelloHandler",
+  )
+);
