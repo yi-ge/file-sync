@@ -2,9 +2,10 @@
 
 [![license](https://img.shields.io/github/license/yi-ge/file-sync.svg?style=flat-square)](https://github.com/yi-ge/file-sync/blob/master/LICENSE)
 [![GitHub Actions](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fyi-ge%2Ffile-sync%2Fbadge%3Fref%3Dmain&style=flat-square)](https://actions-badge.atrox.dev/yi-ge/file-sync/goto?ref=main)
-[![Test Results](https://gist.github.com/yi-ge/00fdcacb47689d14b8e9fdf7fb0f7288/raw/badge.svg)](https://github.com/yi-ge/file-sync)
-[![Coveralls github](https://img.shields.io/coveralls/github/yi-ge/file-sync?style=flat-square)](https://coveralls.io/github/yi-ge/file-sync?branch=main)
+[![npm version](https://img.shields.io/npm/v/file-sync-cli/latest?style=flat-square)](https://www.npmjs.com/package/file-sync-cli)
 [![GitHub last commit](https://img.shields.io/github/last-commit/yi-ge/file-sync.svg?style=flat-square)](https://github.com/yi-ge/file-sync)
+<!-- [![Test Results](https://gist.github.com/yi-ge/00fdcacb47689d14b8e9fdf7fb0f7288/raw/badge.svg)](https://github.com/yi-ge/file-sync)
+[![Coveralls github](https://img.shields.io/coveralls/github/yi-ge/file-sync?style=flat-square)](https://coveralls.io/github/yi-ge/file-sync?branch=main) -->
 
 [简体中文](README_CHS.md)
 
@@ -12,7 +13,7 @@
 
 Automatically sync single file. Sync `.env` file or `.config` file for single user.
 
-The design principle of `file-sync`: the server is not trusted, the client (local) is trusted.
+The design principle of `file-sync`: The server is untrustworthy, the client (local) is trusted.
 
 ## Feature
 
@@ -129,3 +130,104 @@ file-sync remove <file id> <device id>
 ```
 
 Hint: All `<device id>`s can be abbreviated.
+
+## Use of self-hosted servers
+
+You can choose to deploy it in your own server with the Docker or build your own PHP runtime.
+
+The server side uses standard HTTP API, no rare module is used, which is very compatible, so you can deploy the program in most of the Virtual Hosting.
+
+The PHP code provided by default needs to be used with `MySQL 5.4+` database.
+
+### Docker
+
+```bash
+docker run xx:file-sync-server
+```
+
+### PHP
+
+require PHP >= v5.4
+
+#### Server Configuration
+
+<details><summary>CLICK ME</summary>
+<p>
+
+##### Apache
+
+You may need to add the following snippet in your Apache HTTP server virtual host configuration or **.htaccess** file.
+
+```apacheconf
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond $1 !^(index\.php)
+RewriteRule ^(.*)$ /index.php/$1 [L]
+```
+
+Alternatively, if you’re lucky enough to be using a version of Apache greater than 2.2.15, then you can instead just use this one, single line:
+
+```apacheconf
+FallbackResource /index.php
+```
+
+##### IIS
+
+For IIS you will need to install URL Rewrite for IIS and then add the following rule to your `web.config`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <rewrite>
+          <rule name="Toro" stopProcessing="true">
+            <match url="^(.*)$" ignoreCase="false" />
+              <conditions logicalGrouping="MatchAll">
+                <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false" negate="true" />
+                <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
+                <add input="{R:1}" pattern="^(index\.php)" ignoreCase="false" negate="true" />
+              </conditions>
+            <action type="Rewrite" url="/index.php/{R:1}" />
+          </rule>
+        </rewrite>
+    </system.webServer>
+</configuration>
+```
+
+##### Nginx
+
+Under the `server` block of your virtual host configuration, you only need to add three lines.
+
+```conf
+location / {
+  try_files $uri $uri/ /index.php?$args;
+}
+```
+
+</p>
+</details>
+
+## Server-side API
+
+The `file-sync` program currently uses the `HTTP API` to complete synchronization interactions. Currently ~~ has completed ~~ the PHP version of the server-side API.
+
+<details><summary>CLICK ME</summary>
+<p>
+
+Due to frequent changes, currently listed in the Chinese README： [简体中文](README_CHS.md)
+
+</p>
+</details>
+
+## About Safety
+
+According to the design principle of `server is untrustworthy`, all the data stored in the server is encrypted. Since `file-sync` uses asymmetric encryption and is used with SSL on the extranet, it is also secure during transmission.
+
+All versions of encrypted files are stored in the server.
+
+If you are offline while editing a file, `file-sync` will automatically record the last edit time and synchronize it with the version on the server when it is connected to the network. In the meantime, if the same file is edited in another device and the edited content is not the same, a conflict will inevitably arise. The conflicting version will be stored in the same directory of all synced devices as `[filename].[date].backup`.
+
+## TODO
+
+- Support generating guest accounts to synchronize files between trusted and untrusted devices in one way/both ways.

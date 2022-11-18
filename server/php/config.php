@@ -1,5 +1,15 @@
 <?php
-// DB config
+// Disable error reporting
+// error_reporting(0);
+
+// Report runtime errors
+// error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+require_once 'libs/Medoo.php';
+
+use Medoo\Medoo;
+
+// Database configuration
 // Hint: getenv() is not thread safe.
 $DB_CONFIG = [
   'type' => 'mysql',
@@ -11,11 +21,12 @@ $DB_CONFIG = [
   'charset' => 'utf8',
 ];
 
-// error_reporting(0);
-require_once 'libs/Medoo.php';
+// Server configuration
+$server_options = [
+  'cors' => true
+];
 
-use Medoo\Medoo;
-
+// If you are using PHP version 7.5 or higher, it is recommended to switch to a higher version of Medoo
 $database = new Medoo([
   'database_type' => $DB_CONFIG['type'],
   'database_name' => $DB_CONFIG['database'],

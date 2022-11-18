@@ -6,7 +6,8 @@ class HomeHandler
 {
   function get()
   {
-    echo "Hello, world";
+    header('HTTP/1.1 403 Unauthorized');
+    echo "403 Unauthorized";
   }
 
   function get_xhr()
@@ -17,16 +18,75 @@ class HomeHandler
   }
 }
 
+class DeviceAddHandler
+{
+  function post_xhr()
+  {
+    echo json_encode([
+      "status" => 1
+    ]);
+  }
+}
+
+class DeviceRemoveHandler
+{
+  function post_xhr()
+  {
+    echo json_encode([
+      "status" => 1
+    ]);
+  }
+}
+
+class FileConfigsHandler
+{
+  function post_xhr()
+  {
+    echo json_encode([
+      "status" => 1
+    ]);
+  }
+}
+
+class FileConfigHandler
+{
+  function post_xhr()
+  {
+    echo json_encode([
+      "status" => 1
+    ]);
+  }
+}
+
+class FileCheckHandler
+{
+  function post_xhr()
+  {
+    echo json_encode([
+      "status" => 1
+    ]);
+  }
+}
+
+class FileSyncHandler
+{
+  function post_xhr()
+  {
+    echo json_encode([
+      "status" => 1
+    ]);
+  }
+}
+
 Toro::serve(
   array(
     "/" => "HomeHandler",
-    "/device/add" => "HomeHandler",
-    "/device/remove" => "HomeHandler",
-    "/file/config" => "HomeHandler",
-    "/file/check" => "HomeHandler",
-    "/file/sync" => "HomeHandler",
+    "/device/add" => "DeviceAddHandler",
+    "/device/remove" => "DeviceRemoveHandler",
+    "/file/configs" => "FileConfigsHandler",
+    "/file/config" => "FileConfigHandler",
+    "/file/check" => "FileCheckHandler",
+    "/file/sync" => "FileSyncHandler",
   ),
-  [
-    'cors' => true
-  ]
+  $server_options
 );

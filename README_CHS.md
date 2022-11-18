@@ -2,9 +2,10 @@
 
 [![license](https://img.shields.io/github/license/yi-ge/file-sync.svg?style=flat-square)](https://github.com/yi-ge/file-sync/blob/master/LICENSE)
 [![GitHub Actions](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fyi-ge%2Ffile-sync%2Fbadge%3Fref%3Dmain&style=flat-square)](https://actions-badge.atrox.dev/yi-ge/file-sync/goto?ref=main)
-[![Test Results](https://gist.github.com/yi-ge/00fdcacb47689d14b8e9fdf7fb0f7288/raw/badge.svg)](https://github.com/yi-ge/file-sync)
-[![Coveralls github](https://img.shields.io/coveralls/github/yi-ge/file-sync?style=flat-square)](https://coveralls.io/github/yi-ge/file-sync?branch=main)
+[![npm version](https://img.shields.io/npm/v/file-sync-cli/latest?style=flat-square)](https://www.npmjs.com/package/file-sync-cli)
 [![GitHub last commit](https://img.shields.io/github/last-commit/yi-ge/file-sync.svg?style=flat-square)](https://github.com/yi-ge/file-sync)
+<!-- [![Test Results](https://gist.github.com/yi-ge/00fdcacb47689d14b8e9fdf7fb0f7288/raw/badge.svg)](https://github.com/yi-ge/file-sync)
+[![Coveralls github](https://img.shields.io/coveralls/github/yi-ge/file-sync?style=flat-square)](https://coveralls.io/github/yi-ge/file-sync?branch=main) -->
 
 [ENGLISH](README.md)
 
@@ -132,7 +133,13 @@ file-sync remove <file id> <device id>
 
 提示：所有的`<device id>`均可用简写。
 
-## 服务器自托管
+## 使用自托管服务器
+
+可以选择借助Docker或者自行搭建PHP运行环境在自己的服务器中部署。
+
+服务器端采用标准的HTTP API方式进行交互，没有用到罕见模块，极具兼容性，因此可以将程序部署在绝大部分虚拟主机中。
+
+默认提供的PHP代码需要搭配MySQL 5.4+数据库使用。
 
 ### Docker
 
@@ -145,6 +152,9 @@ docker run xx:file-sync-server
 require PHP >= v5.4
 
 #### Server Configuration
+
+<details><summary>CLICK ME</summary>
+<p>
 
 ##### Apache
 
@@ -197,9 +207,24 @@ location / {
 }
 ```
 
+</p>
+</details>
+
 ## 服务器端API
 
 `file-sync`程序目前使用`HTTP API`完成同步交互。目前~~已完成~~PHP版本的服务器端API。
+
+<details><summary>CLICK ME</summary>
+<p>
+
+### 基础数据结构
+
+```text
+device: email, machineId, machineName, verify, publicKey, privateKey, createdAt
+config: email, machineId, fileId, path, attribute, createdAt
+file: email, fileId, fileName, content, sha256, fromMachineId, updateAt
+log: email, machineId, action, content, createdAt
+```
 
 ### 登录/注册用户并注册设备
 
@@ -207,22 +232,23 @@ POST /device/add
 
 ```json
 {
-  "email": sha1("example@example.com"),
-  "machineId": sha1(sha256("machineId"))
-  "verify": sha1("密码的sha256中的前64位取sha1"),
+  "email": "sha1(email)",
+  "machineId": "sha1(sha256(machineId))",
+  "machineName": "verify加密的machineName",
+  "verify": "sha1(密码的sha256中的前64位取sha1)",
   "publicKey": "新生成的publicKey",
   "privateKey": "密码的sha256中的第二段64位进行加密的私钥（私钥密码是第三段64位）"
 }
 ```
 
-返回：
+Return：
 
 ```json
 {
-  "status": 1,
-  "result": { // 该字段是密文数据。如果该字段是空，说明此用户已经存在但token不对，如果不为空，说明设备注册成功，需要通过密码的sha256中的第二段64位进行解密，如果解密后的内容中的publicKey和传输的publicKey相同，则说明该用户是新用户。如果不相同，说明该用户是老用户，则需要以返回回来的publicKey和privateKey为准。
-    "publicKey": "公钥",
-    "privateKey": "私钥"
+  "status": 1, // 设备注册成功， 2：此用户已经存在但verify不对， 3：设备已注册
+  "result": {
+    "publicKey": "verify加密的公钥", // 如果解密后的内容中的publicKey和传输的publicKey相同，则说明该用户是新用户。
+    "privateKey": "密码的sha256中的第二段64位进行加密的私钥（私钥密码是第三段64位）" // 如果不相同，说明该用户是老用户，则需要以返回回来的publicKey和privateKey为准。
   }
 }
 ```
@@ -233,7 +259,24 @@ POST /device/list
 
 ```json
 {
-  "token": "签名密码的sha256中的第四段64位"
+  "timestamp": "时间戳",
+  "machineId": "sha1(sha256(machineId))",
+  "token": "签名[machineId+verify+时间戳]",
+  "email": "sha1(email)",
+}
+```
+
+Return：
+
+```json
+{
+  "status": 1,
+  "result": [
+    {
+      "machineId": "sha1(sha256(machineId))",
+      "machineName": "verify加密的machineName"
+    }
+  ]
 }
 ```
 
@@ -243,31 +286,44 @@ POST /device/remove
 
 ```json
 {
-  "token": "签名密码的sha256中的第四段64位",
-  "machineId": "签名sha1(sha256("machineId"))"
+  "timestamp": "时间戳",
+  "machineId": "sha1(sha256(machineId))",
+  "token": "签名[machineId+verify+时间戳]",
+  "email": "sha1(email)",
+  "removeMachineId": "sha1(sha256(machineId))",
+}
+```
+
+Return：
+
+```json
+{
+  "status": 1
 }
 ```
 
 ### 获取文件同步配置信息
 
-POST /file/config
+POST /file/configs
 
 ```json
 {
-  "token": "签名密码的sha256中的第四段64位"
+  "timestamp": "时间戳",
+  "machineId": "sha1(sha256(machineId))",
+  "token": "签名[machineId+verify+时间戳]",
+  "email": "sha1(email)"
 }
 ```
 
-### 设置文件配置
-
-POST /file/config
+Return：
 
 ```json
 {
-  "token": "签名密码的sha256中的第四段64位",
-  "config": [
+  "status": 1,
+  "result": [
     {
       "fileId": "",
+      "fileName": "私钥加密后的fileName",
       "config": [
         {
           "machineId":, "machineId",
@@ -279,16 +335,55 @@ POST /file/config
 }
 ```
 
+### 设置文件配置
+
+POST /file/config
+
+```json
+{
+  "timestamp": "时间戳",
+  "machineId": "sha1(sha256(machineId))",
+  "token": "签名[machineId+verify+时间戳]",
+  "email": "sha1(email)",
+  "config": {
+    "fileId": "fileId",
+    "fileName": "私钥加密后的fileName，如果是添加新同步则为空",
+    "action": "add/remove",
+    "machineId": "sha1(sha256(machineId))",
+    "path": "私钥加密后的path"
+  }
+}
+```
+
+Return：
+
+```json
+{
+  "status": 1
+}
+```
+
 ### 检查单个文件是否存在更新
 
 POST /file/check
 
 ```json
 {
-  "token": "签名密码的sha256中的第四段64位",
-  "fileId": "",
+  "timestamp": "时间戳",
+  "machineId": "sha1(sha256(machineId))",
+  "token": "签名[machineId+verify+时间戳]",
+  "email": "sha1(email)",
+  "fileId": "fileId",
   "sha256": "文件sha256",
   "updateAt": "文件最后一次编辑时间"
+}
+```
+
+Return：
+
+```json
+{
+  "status": 0 // 不存在， 1：存在更新
 }
 ```
 
@@ -300,13 +395,27 @@ POST /file/sync
 
 ```json
 {
-  "token": "签名密码的sha256中的第四段64位",
-  "fileId": "",
+  "timestamp": "时间戳",
+  "machineId": "sha1(sha256(machineId))",
+  "token": "签名[machineId+verify+时间戳]",
+  "email": "sha1(email)",
+  "fileId": "fileId，由首次添加的文件sha256取sha1生成",
   "sha256": "文件sha256",
-  "updateAt": "文件最后一次编辑时间"
+  "updateAt": "文件最后一次编辑时间",
   "content": "私钥加密的文件内容"
 }
 ```
+
+Return：
+
+```json
+{
+  "status": 1
+}
+```
+
+</p>
+</details>
 
 ## 关于安全性
 
@@ -314,8 +423,8 @@ POST /file/sync
 
 服务器中以加密的形式保存所有版本的文件。
 
-如果在编辑文件的时候处于离线状态，`file-sync`会自动记录最后完成编辑的时间，待接入网络后与服务器中的版本进行同步。在此期间，如果在另外一台设备中编辑了同一个文件且编辑内容不一致，将会不可避免的产生冲突，`file-sync`不会自动合并冲突，但是会自动应用最后一个修改的版本，产生冲突的版本将会以`文件名.日期.backup`的方式存储到所有同步设备同一目录下。
+如果在编辑文件的时候处于离线状态，`file-sync`会自动记录最后完成编辑的时间，待接入网络后与服务器中的版本进行同步。在此期间，如果在另外一台设备中编辑了同一个文件且编辑内容不一致，将会不可避免的产生冲突，`file-sync`不会自动合并冲突，但是会自动应用最后一个修改的版本，产生冲突的版本将会以`[文件名].[日期].backup`的方式存储到所有同步设备同一目录下。
 
 ## TODO
 
-- 支持生成guest账号，在可信设备和不可信设备之间单向/双向同步文件
+- 支持生成guest账号，在可信设备和不可信设备之间单向/双向同步文件。
