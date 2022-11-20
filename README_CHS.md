@@ -261,7 +261,7 @@ POST /device/list
 {
   "timestamp": "时间戳",
   "machineId": "sha1(sha256(machineId))",
-  "token": "签名[machineId+verify+时间戳]",
+  "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
 }
 ```
@@ -288,7 +288,7 @@ POST /device/remove
 {
   "timestamp": "时间戳",
   "machineId": "sha1(sha256(machineId))",
-  "token": "签名[machineId+verify+时间戳]",
+  "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
   "removeMachineId": "sha1(sha256(machineId))",
 }
@@ -310,7 +310,7 @@ POST /file/configs
 {
   "timestamp": "时间戳",
   "machineId": "sha1(sha256(machineId))",
-  "token": "签名[machineId+verify+时间戳]",
+  "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)"
 }
 ```
@@ -343,7 +343,7 @@ POST /file/config
 {
   "timestamp": "时间戳",
   "machineId": "sha1(sha256(machineId))",
-  "token": "签名[machineId+verify+时间戳]",
+  "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
   "config": {
     "fileId": "fileId",
@@ -371,7 +371,7 @@ POST /file/check
 {
   "timestamp": "时间戳",
   "machineId": "sha1(sha256(machineId))",
-  "token": "签名[machineId+verify+时间戳]",
+  "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
   "fileId": "fileId",
   "sha256": "文件sha256",
@@ -397,7 +397,7 @@ POST /file/sync
 {
   "timestamp": "时间戳",
   "machineId": "sha1(sha256(machineId))",
-  "token": "签名[machineId+verify+时间戳]",
+  "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
   "fileId": "fileId，由首次添加的文件sha256取sha1生成",
   "sha256": "文件sha256",
