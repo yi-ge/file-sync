@@ -20,8 +20,10 @@ class HomeHandler
 
 class DeviceAddHandler
 {
-  function post_xhr()
+  function post_xhr($json)
   {
+    var_dump($json);
+    // $email =
     echo json_encode([
       "status" => 1
     ]);

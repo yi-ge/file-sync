@@ -52,6 +52,22 @@ class Toro
     $handler_instance = null;
 
     if ($discovered_handler) {
+      $json = [];
+      if (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], "application/json") === 0 && $request_method === 'post') {
+        function parseJSON($str)
+        {
+          $json = json_decode($str);
+          return json_last_error() == JSON_ERROR_NONE ? $json : [];
+        }
+
+        $json_params = file_get_contents("php://input");
+
+        if (strlen($json_params) > 0)
+          $json = parseJSON($json_params);
+      }
+
+      array_unshift($regex_matches, $json);
+
       if (is_string($discovered_handler)) {
         $handler_instance = new $discovered_handler();
       } elseif (is_callable($discovered_handler)) {
