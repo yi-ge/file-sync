@@ -1,21 +1,36 @@
 package utils
 
 import (
-	"fmt"
 	"testing"
 )
 
 func TestAesCBC(t *testing.T) {
 	key := []byte("abcdabcdabcdabcdabcdabcdabcdabcd")
 
-	encryptText := "GXE6Bxzv/pWintcZeiupSATxwdcE82ZttW8+6jpyou4Ev9+9NySxZirRVMo72Ujv"
+	src := "1234567891111111"
+	t.Logf("Text: %s", src)
 
-	rawText, err := decrypt(key, encryptText)
+	enc, err := AESCBCEncrypt(key, src)
 	if err != nil {
-		fmt.Println(err)
+		t.Fatal(err)
+	}
+	t.Logf("Encrypt data: %s", enc)
+
+	decryptData, err := AESCBCDecrypt(key, enc)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	t.Logf("Decrypt text: %s", decryptData)
+
+	// PHP AES-256-CBC encryptText
+	encryptText := "DF8xTlJ03oyOohmsoEB33UsybnM30vopCIiRxr4-DVzAajKBaxOrOypRHPkCltfM"
+
+	rawText, err := AESCBCDecryptSafety(key, encryptText)
+	if err != nil {
+		t.Fatal(err)
 		return
 	}
 
-	fmt.Printf("raw text is %s \n", rawText)
-
+	t.Logf("Raw text is %s \n", rawText)
 }

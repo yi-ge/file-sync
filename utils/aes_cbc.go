@@ -10,61 +10,96 @@ import (
 	"io"
 )
 
-// 填充
-func pad(src []byte) []byte {
-	padding := aes.BlockSize - len(src)%aes.BlockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(src, padtext...)
+// padding
+func padding(src []byte) []byte {
+	paddingNum := aes.BlockSize - len(src)%aes.BlockSize
+	padText := bytes.Repeat([]byte{byte(paddingNum)}, paddingNum)
+	return append(src, padText...)
 }
 
-func unpad(src []byte) ([]byte, error) {
+// unPadding
+func unPadding(src []byte) ([]byte, error) {
 	length := len(src)
-	unpadding := int(src[length-1])
+	unPaddingNum := int(src[length-1])
 
-	if unpadding > length {
-		return nil, errors.New("unpad error. This could happen when incorrect encryption key is used")
+	if unPaddingNum > length {
+		return nil, errors.New("unPadding error. This could happen when incorrect encryption key is used")
 	}
 
-	return src[:(length - unpadding)], nil
+	return src[:(length - unPaddingNum)], nil
 }
 
-func encrypt(key []byte, text string) (string, error) {
-	block, err := aes.NewCipher(key)
+func AESCBCEncrypt(key []byte, text string) (string, error) {
+	cipherText, err := AESCBCEncryptRaw(key, text)
 	if err != nil {
 		return "", err
 	}
 
-	msg := pad([]byte(text))
-	ciphertext := make([]byte, aes.BlockSize+len(msg))
-
-	//随机生成向量
-	iv := ciphertext[:aes.BlockSize]
-	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		return "", err
-	}
-
-	mode := cipher.NewCBCEncrypter(block, iv)
-	mode.CryptBlocks(ciphertext[aes.BlockSize:], msg)
-
-	finalMsg := (base64.StdEncoding.EncodeToString(ciphertext))
+	finalMsg := (base64.StdEncoding.EncodeToString(cipherText))
 
 	return finalMsg, nil
 }
 
-func decrypt(key []byte, text string) (string, error) {
-	block, err := aes.NewCipher(key)
+func AESCBCEncryptSafety(key []byte, text string) (string, error) {
+	cipherText, err := AESCBCEncryptRaw(key, text)
 	if err != nil {
 		return "", err
 	}
 
+	finalMsg := (base64.URLEncoding.EncodeToString(cipherText))
+
+	return finalMsg, nil
+}
+
+func AESCBCEncryptRaw(key []byte, text string) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := padding([]byte(text))
+	cipherText := make([]byte, aes.BlockSize+len(msg))
+
+	// Randomly generated vectors
+	iv := cipherText[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return nil, err
+	}
+
+	mode := cipher.NewCBCEncrypter(block, iv)
+	mode.CryptBlocks(cipherText[aes.BlockSize:], msg)
+
+	return cipherText, nil
+}
+
+func AESCBCDecrypt(key []byte, text string) (string, error) {
 	decodedMsg, err := base64.StdEncoding.DecodeString((text))
 
 	if err != nil {
 		return "", err
 	}
 
+	return AESCBCDecryptRaw(key, decodedMsg)
+}
+
+func AESCBCDecryptSafety(key []byte, text string) (string, error) {
+	decodedMsg, err := base64.URLEncoding.DecodeString((text))
+
+	if err != nil {
+		return "", err
+	}
+
+	return AESCBCDecryptRaw(key, decodedMsg)
+}
+
+func AESCBCDecryptRaw(key []byte, decodedMsg []byte) (string, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
 	if (len(decodedMsg) % aes.BlockSize) != 0 {
-		return "", errors.New("blocksize must be multipe of decoded message length")
+		return "", errors.New("blocksize must be multiplier of decoded message length")
 	}
 
 	iv := decodedMsg[:aes.BlockSize]
@@ -73,10 +108,10 @@ func decrypt(key []byte, text string) (string, error) {
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(msg, msg)
 
-	unpadMsg, err := unpad(msg)
+	unPaddingMsg, err := unPadding(msg)
 	if err != nil {
 		return "", err
 	}
 
-	return string(unpadMsg), nil
+	return string(unPaddingMsg), nil
 }

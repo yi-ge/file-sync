@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -54,7 +53,7 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadFile(absolutePath)
+	return os.ReadFile(absolutePath)
 }
 
 // WriteByteFile creates a file from a byte slice with an optional file mode, only if it's new, and populates it - can force overwrite optionally
@@ -65,17 +64,20 @@ func WriteByteFile(path string, content []byte, mode int, overwrite bool) (bool,
 	} else {
 		fileMode = os.FileMode(mode)
 	}
+
 	fileCheck, err := FileExists(path)
 	check(err)
+
 	// If not, create one with a starting digit
 	if !fileCheck {
-		err = ioutil.WriteFile(path, content, fileMode)
+		err = os.WriteFile(path, content, fileMode)
 		check(err)
 		return true, err
 	}
+
 	// If the file exists and we want to overwrite it
 	if fileCheck && overwrite {
-		err = ioutil.WriteFile(path, content, fileMode)
+		err = os.WriteFile(path, content, fileMode)
 		check(err)
 		return true, err
 	}

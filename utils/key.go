@@ -2,7 +2,7 @@ package utils
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 )
 
 // writeRSAKeyPair creates key pair files
@@ -21,7 +21,7 @@ func writeRSAKeyPair(privKey *bytes.Buffer, pubKey *bytes.Buffer, path string) (
 
 // writeKeyFile writes a public or private key file depending on the permissions, 644 for public, 400 for private
 func writeKeyFile(pem *bytes.Buffer, path string, permission int) (bool, error) {
-	pemByte, _ := ioutil.ReadAll(pem)
+	pemByte, _ := io.ReadAll(pem)
 	keyFile, err := WriteByteFile(path, pemByte, permission, false)
 	if err != nil {
 		return false, err

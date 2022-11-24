@@ -1,9 +1,14 @@
 {
   "cSpell.words": [
+    "abcdabcdabcdabcdabcdabcdabcdabcd",
+    "AESCBC",
+    "AESCTR",
+    "AESMAC",
     "Aivazis",
     "apacheconf",
     "appname",
     "clientid",
+    "Cltf",
     "Cond",
     "conjunctor",
     "datas",
@@ -13,12 +18,15 @@
     "jsoniter",
     "kardianos",
     "keyname",
+    "Keypair",
     "LASTVAL",
     "LONGTEXT",
     "machineid",
     "Medoo",
     "NEWID",
+    "Oohmso",
     "urfave",
+    "Usybn",
     "WSID"
   ],
   "php.version": "v8.1"

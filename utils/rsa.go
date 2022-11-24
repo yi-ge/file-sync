@@ -48,7 +48,7 @@ func pemEncodeRSAPrivateKey(privKey *rsa.PrivateKey, rsaPrivateKeyPassword strin
 	*/
 
 	if rsaPrivateKeyPassword != "" {
-		encBytes := encryptBytes(privKeyPEM.Bytes(), rsaPrivateKeyPassword)
+		encBytes := AESMACEncryptBytes(privKeyPEM.Bytes(), rsaPrivateKeyPassword)
 		b.Write(encBytes)
 	}
 
@@ -59,7 +59,7 @@ func pemEncodeRSAPrivateKey(privKey *rsa.PrivateKey, rsaPrivateKeyPassword strin
 func pemToEncryptedBytes(pem *bytes.Buffer, passphrase string) (b *bytes.Buffer) {
 	b = new(bytes.Buffer)
 
-	encBytes := encryptBytes(pem.Bytes(), passphrase)
+	encBytes := AESMACEncryptBytes(pem.Bytes(), passphrase)
 	b.Write(encBytes)
 
 	return b
@@ -230,7 +230,7 @@ func RsaDecrypt(cipherText, keyBytes []byte) []byte {
 	//获取私钥
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
-		panic(errors.New("private key error!"))
+		panic(errors.New("private key error"))
 	}
 	//解析PKCS1格式的私钥
 	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)

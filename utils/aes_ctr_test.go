@@ -5,23 +5,25 @@ import (
 )
 
 func TestAesCrt(t *testing.T) {
-	src := "你好"
-	t.Log("原文：", src)
-	//16byte密钥
-	key := []byte("1234567887654321")
-	//调用加密函数
-	encryptData, err := aesCtrEncrypt([]byte(src), key)
-	if err != nil {
-		t.Log("err:", err)
-		return
-	}
-	t.Logf("密文: %x\n", encryptData)
+	src := "Hello"
+	t.Log("Text: ", src)
 
-	//调用解密函数
-	plainText, err := aesCtrDecrypt(encryptData, key)
+	// 16byte key
+	key := []byte("1234567887654321")
+
+	// Encrypt
+	encryptData, err := AESCTREncrypt([]byte(src), key)
 	if err != nil {
 		t.Log("err:", err)
 		return
 	}
-	t.Logf("解密后明文: %s\n", plainText)
+	t.Logf("Crypt data: %x\n", encryptData)
+
+	// Decrypt
+	plainText, err := AESCTRDecrypt(encryptData, key)
+	if err != nil {
+		t.Fatal("err:", err)
+		return
+	}
+	t.Logf("Text: %s\n", plainText)
 }
