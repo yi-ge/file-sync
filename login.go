@@ -39,7 +39,7 @@ func login(email string, password string, hostname string) (newUser bool, public
 		return false, "", ""
 	}
 
-	signBase64 := jsoniter.Get(secretData, "sign").ToString()
+	signBase64 := jsoniter.Get([]byte(secretData), "sign").ToString()
 
 	return true, signBase64, ""
 }

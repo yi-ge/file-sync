@@ -5,6 +5,7 @@ require_once 'libs/Toro.php';
 // routes
 require_once 'routes/HomeHandler.php';
 require_once 'routes/DeviceAddHandler.php';
+require_once 'routes/DeviceListHandler.php';
 require_once 'routes/DeviceRemoveHandler.php';
 require_once 'routes/FileConfigsHandler.php';
 require_once 'routes/FileConfigsHandler.php';
@@ -15,6 +16,7 @@ Toro::serve(
   array(
     "/" => "HomeHandler",
     "/device/add" => "DeviceAddHandler",
+    "/device/list" => "DeviceListHandler",
     "/device/remove" => "DeviceRemoveHandler",
     "/file/configs" => "FileConfigsHandler",
     "/file/config" => "FileConfigHandler",

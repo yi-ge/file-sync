@@ -220,7 +220,8 @@ location / {
 ### 基础数据结构
 
 ```text
-device: email, machineId, machineName, verify, publicKey, privateKey, createdAt
+user: email, verify, publicKey, privateKey, createdAt
+device: email, machineId, machineName, createdAt
 config: email, machineId, fileId, path, attribute, createdAt
 file: email, fileId, fileName, content, sha256, fromMachineId, updateAt
 log: email, machineId, action, content, createdAt
@@ -245,7 +246,8 @@ Return：
 
 ```json
 {
-  "status": 1, // 设备注册成功， 2：此用户已经存在但verify不对， 3：设备已注册
+  "status": 1, // 新用户及新设备注册成功， 2： 老用户新设备注册成功
+  // -2：设备已注册， -3：此用户已经存在但verify值验证失败
   "result": {
     "publicKey": "verify加密的公钥", // 如果解密后的内容中的publicKey和传输的publicKey相同，则说明该用户是新用户。
     "privateKey": "密码的sha256中的第二段64位进行加密的私钥（私钥密码是第三段64位）" // 如果不相同，说明该用户是老用户，则需要以返回回来的publicKey和privateKey为准。
