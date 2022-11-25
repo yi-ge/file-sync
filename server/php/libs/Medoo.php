@@ -1537,9 +1537,13 @@ class Medoo
 
   public function last()
   {
-    $log = end($this->logs);
+    $log = end($this->logs) ?: [];
 
-    return $this->generate($log[0], $log[1]);
+    if (count($log) >= 2) {
+      return $this->generate($log[0], $log[1]);
+    } else {
+      return null;
+    }
   }
 
   public function log()

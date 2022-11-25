@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 )
 
-func getSha256Str(str string) string {
+func GetSha256Str(str string) string {
 	h := sha256.New()
 	h.Write([]byte(str))
 

@@ -6,7 +6,7 @@ import (
 	"runtime"
 )
 
-// CurrentFile - 获取当前的文件路径
+// CurrentFile get the current file path
 func CurrentFile() string {
 	_, file, _, ok := runtime.Caller(1)
 	if !ok {
@@ -15,7 +15,7 @@ func CurrentFile() string {
 	return file
 }
 
-// CurrentDir - 获取当前执行文件的目录
+// CurrentDir get the directory of the current executable file
 func CurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -24,7 +24,7 @@ func CurrentDir() string {
 	return dir
 }
 
-// MakeDirIfNotExist - 如果文件夹不存在则创建
+// MakeDirIfNotExist create if the folder does not exist
 func MakeDirIfNotExist(path string) {
 	isExist, err := FileExists(path)
 	if isExist && err != nil {

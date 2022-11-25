@@ -6,10 +6,10 @@ import (
 	"github.com/denisbrodbeck/machineid"
 )
 
-func getMachineID() string {
+func GetMachineID() string {
 	id, err := machineid.ProtectedID("file-sync")
 	if err != nil {
 		log.Fatal(err)
 	}
-	return getSha1Str(id)
+	return GetSha1Str(id)
 }

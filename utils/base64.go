@@ -31,11 +31,13 @@ func Base64DecodeStrToStr(input string) (string, error) {
 	return string(res), nil
 }
 
+// Base64SafetyEncode
 func Base64SafetyEncode(text string) string {
 	// $text = str_replace(['+', '/'], ['-', '_'], $text);
 	return base64.URLEncoding.EncodeToString([]byte(text))
 }
 
+// Base64SafetyDecode
 func Base64SafetyDecode(data string) ([]byte, error) {
 	// $text = str_replace(['-', '_'], ['+', '/'], $text);
 	return base64.URLEncoding.DecodeString(data)

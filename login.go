@@ -1,16 +1,30 @@
 package main
 
 import (
-	"io/ioutil"
+	"bytes"
+	"io"
 	"net/http"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yi-ge/file-sync/utils"
 )
 
-func login(email string, password string, hostname string) (newUser bool, publicKey string, privateKey string) {
+func login(email string, password string, machineName string) (newUser bool, publicKey string, privateKey string) {
 	requestURL := apiURL + "/device/add"
-	resp, err := http.Post(requestURL, "application/json", nil)
+	machineId := utils.GetMachineID()
+	verify := utils.GetSha1Str(password[:64])
+	publicKey = ""
+	privateKey = ""
+	bodyMap := map[string]string{
+		"email":       email,
+		"machineId":   machineId,
+		"machineName": machineName,
+		"verify":      verify,
+		"publicKey":   publicKey,
+		"privateKey":  privateKey,
+	}
+	jsonBody, _ := jsoniter.Marshal(bodyMap)
+	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(jsonBody))
 
 	if err != nil {
 		logger.Infof("GET request failed: %s\n", err)
@@ -18,7 +32,7 @@ func login(email string, password string, hostname string) (newUser bool, public
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		logger.Infof("Body read failed: %s\n", err)

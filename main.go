@@ -53,14 +53,14 @@ func (p *program) Start(s service.Service) error {
 							panic(err)
 						}
 
-						userHostname := ""
+						machineName := ""
 						prompt2 := &survey.Input{
 							Message: "Please type your device name",
 							Default: hostname,
 						}
-						survey.AskOne(prompt2, &userHostname)
+						survey.AskOne(prompt2, &machineName)
 
-						login(email, password, userHostname)
+						login(email, password, machineName)
 						return nil
 					},
 				},

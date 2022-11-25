@@ -15,8 +15,8 @@ import (
 	"fmt"
 )
 
-// generateRSAKeypair returns a private RSA key pair object
-func generateRSAKeypair(keySize int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
+// GenerateRSAKeypair returns a private RSA key pair object
+func GenerateRSAKeypair(keySize int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	if keySize == 0 {
 		keySize = 4096
 	}
@@ -28,17 +28,17 @@ func generateRSAKeypair(keySize int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	return privKey, &privKey.PublicKey, nil
 }
 
-// pemEncodeRSAPrivateKey creates a PEM from an RSA Private key, and optionally returns an encrypted version
-func pemEncodeRSAPrivateKey(privKey *rsa.PrivateKey, rsaPrivateKeyPassword string) (privKeyPEM *bytes.Buffer, b *bytes.Buffer) {
+// PemEncodeRSAPrivateKey creates a PEM from an RSA Private key, and optionally returns an encrypted version
+func PemEncodeRSAPrivateKey(privKey *rsa.PrivateKey, rsaPrivateKeyPassword string) (privKeyPEM *bytes.Buffer, encryptedPrivKeyPEMBase64 string) {
 	privKeyPEM = new(bytes.Buffer)
-	b = new(bytes.Buffer)
+	b := new(bytes.Buffer)
 
 	privateKeyBlock := &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
 	}
 
-	pem.Encode(privKeyPEM, privateKeyBlock)
+	pem.Encode(privKeyPEM, privateKeyBlock) // or EncodeToMemory
 
 	/*
 		Legacy encryption, insecure, replaced with AES-GCM encryption
@@ -50,13 +50,15 @@ func pemEncodeRSAPrivateKey(privKey *rsa.PrivateKey, rsaPrivateKeyPassword strin
 	if rsaPrivateKeyPassword != "" {
 		encBytes := AESMACEncryptBytes(privKeyPEM.Bytes(), rsaPrivateKeyPassword)
 		b.Write(encBytes)
+
+		encryptedPrivKeyPEMBase64 = base64.RawURLEncoding.EncodeToString(b.Bytes())
 	}
 
-	return privKeyPEM, b
+	return privKeyPEM, encryptedPrivKeyPEMBase64
 }
 
-// pemToEncryptedBytes takes a PEM byte buffer and encrypts it
-func pemToEncryptedBytes(pem *bytes.Buffer, passphrase string) (b *bytes.Buffer) {
+// PemToEncryptedBytes takes a PEM byte buffer and encrypts it
+func PemToEncryptedBytes(pem *bytes.Buffer, passphrase string) (b *bytes.Buffer) {
 	b = new(bytes.Buffer)
 
 	encBytes := AESMACEncryptBytes(pem.Bytes(), passphrase)
@@ -65,8 +67,8 @@ func pemToEncryptedBytes(pem *bytes.Buffer, passphrase string) (b *bytes.Buffer)
 	return b
 }
 
-// pemEncodeRSAPublicKey takes a DER formatted RSA Public Key object and converts it to PEM format
-func pemEncodeRSAPublicKey(caPubKey *rsa.PublicKey) *bytes.Buffer {
+// PemEncodeRSAPublicKey takes a DER formatted RSA Public Key object and converts it to PEM format
+func PemEncodeRSAPublicKey(caPubKey *rsa.PublicKey) *bytes.Buffer {
 	caPubKeyPEM := new(bytes.Buffer)
 	pem.Encode(caPubKeyPEM, &pem.Block{
 		Type:  "RSA PUBLIC KEY",
@@ -75,32 +77,20 @@ func pemEncodeRSAPublicKey(caPubKey *rsa.PublicKey) *bytes.Buffer {
 	return caPubKeyPEM
 }
 
-// RSA公钥私钥产生
-func GenRsaKey() (publicKey, privatekey []byte) {
-	// 生成私钥文件
-	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
+func GenerateRSAKeypairPEM(keySize int, rsaPrivateKeyPassword string) (privKeyPEM *bytes.Buffer, encryptedPrivKeyPEMBase64 string, publicKeyPEM *bytes.Buffer, err error) {
+	privateKey, publicKey, err := GenerateRSAKeypair(keySize)
 	if err != nil {
-		panic(err)
+		return nil, "", nil, err
 	}
-	derStream := x509.MarshalPKCS1PrivateKey(privateKey)
-	block := &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: derStream,
-	}
-	privatekey = pem.EncodeToMemory(block)
-	derPkix, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
-	if err != nil {
-		panic(err)
-	}
-	block = &pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: derPkix,
-	}
-	publicKey = pem.EncodeToMemory(block)
-	return
+
+	privKeyPEM, encryptedPrivKeyPEMBase64 = PemEncodeRSAPrivateKey(privateKey, rsaPrivateKeyPassword)
+
+	publicKeyPEM = PemEncodeRSAPublicKey(publicKey)
+
+	return privKeyPEM, encryptedPrivKeyPEMBase64, publicKeyPEM, nil
 }
 
-// 加密：采用sha1算法加密后转base64格式
+// RsaEncryptWithSha1Base64 加密：采用sha1算法加密后转base64格式
 func RsaEncryptWithSha1Base64(originalData, publicKey string) (string, error) {
 	key, _ := base64.StdEncoding.DecodeString(publicKey)
 	pubKey, _ := x509.ParsePKIXPublicKey(key)
@@ -108,7 +98,7 @@ func RsaEncryptWithSha1Base64(originalData, publicKey string) (string, error) {
 	return base64.StdEncoding.EncodeToString(encryptedData), err
 }
 
-// 解密：对采用sha1算法加密后转base64格式的数据进行解密（私钥PKCS1格式）
+// RsaDecryptWithSha1Base64 解密：对采用sha1算法加密后转base64格式的数据进行解密（私钥PKCS1格式）
 func RsaDecryptWithSha1Base64(encryptedData, privateKey string) (string, error) {
 	encryptedDecodeBytes, err := base64.StdEncoding.DecodeString(encryptedData)
 	if err != nil {
@@ -120,7 +110,7 @@ func RsaDecryptWithSha1Base64(encryptedData, privateKey string) (string, error) 
 	return string(originalData), err
 }
 
-// 签名：采用sha1算法进行签名并输出为hex格式（私钥PKCS8格式）
+// RsaSignWithSha1Hex 签名：采用sha1算法进行签名并输出为hex格式（私钥PKCS8格式）
 func RsaSignWithSha1Hex(data string, prvKey string) (string, error) {
 	keyBytes, err := hex.DecodeString(prvKey)
 	if err != nil {
@@ -144,7 +134,7 @@ func RsaSignWithSha1Hex(data string, prvKey string) (string, error) {
 	return out, nil
 }
 
-// 验签：对采用sha1算法进行签名后转base64格式的数据进行验签
+// RsaVerySignWithSha1Base64 验签：对采用sha1算法进行签名后转base64格式的数据进行验签
 func RsaVerySignWithSha1Base64(originalData, signData, pubKey string) error {
 	sign, err := base64.StdEncoding.DecodeString(signData)
 	if err != nil {
@@ -160,7 +150,7 @@ func RsaVerySignWithSha1Base64(originalData, signData, pubKey string) error {
 	return rsa.VerifyPKCS1v15(pub.(*rsa.PublicKey), crypto.SHA1, hash.Sum(nil), sign)
 }
 
-// 签名
+// RsaSignWithSha256
 func RsaSignWithSha256(data []byte, keyBytes []byte) []byte {
 	h := sha256.New()
 	h.Write(data)
@@ -184,7 +174,7 @@ func RsaSignWithSha256(data []byte, keyBytes []byte) []byte {
 	return signature
 }
 
-// 验证
+// RsaVerySignWithSha256
 func RsaVerySignWithSha256(data, signData, keyBytes []byte) bool {
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {

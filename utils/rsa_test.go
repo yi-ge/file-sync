@@ -27,6 +27,20 @@ wQIDAQAB
 -----END PUBLIC KEY-----`
 )
 
+func TestGenerateRSAKeypair(t *testing.T) {
+	rsaPrivateKeyPassword := "123"
+
+	privKeyPEM, encryptedPrivKeyPEMBase64, publicKeyPEM, err := GenerateRSAKeypairPEM(4096, rsaPrivateKeyPassword)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Logf("privKeyPEM: %s", privKeyPEM)
+	t.Logf("encryptedPrivKeyPEMBase64: %s", encryptedPrivKeyPEMBase64)
+	t.Logf("publicKeyPEM: %s", publicKeyPEM)
+}
+
 func TestEncryptAndDecrypt(t *testing.T) {
 	data, _ := RsaEncryptWithSha1Base64("123456", rsaPublicKey)
 	fmt.Println(string(data))

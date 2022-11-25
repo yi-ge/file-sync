@@ -6,8 +6,8 @@ import (
 	"encoding/hex"
 )
 
-// passphraseToHash returns a hexadecimal string of an SHA1 checksumed passphrase
-func passphraseToHash(pass string) (string, []byte) {
+// PassphraseToHash returns a hexadecimal string of an SHA1 checksumed passphrase
+func PassphraseToHash(pass string) (string, []byte) {
 	// The salt is used as a unique string to defeat rainbow table attacks
 	saltHash := md5.New()
 	saltHash.Write([]byte(pass))
@@ -15,10 +15,10 @@ func passphraseToHash(pass string) (string, []byte) {
 	salt := hex.EncodeToString(saltyBytes)
 
 	saltyPass := []byte(pass + salt)
-	hasher := sha1.New()
-	hasher.Write(saltyPass)
+	hash := sha1.New()
+	hash.Write(saltyPass)
 
-	hash := hasher.Sum(nil)
+	hashByte := hash.Sum(nil)
 
-	return hex.EncodeToString(hash), hash
+	return hex.EncodeToString(hashByte), hashByte
 }

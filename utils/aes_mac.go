@@ -10,7 +10,7 @@ import (
 
 // AESMACEncryptBytes is a function that takes a plain byte slice and a passphrase and returns an encrypted byte slice
 func AESMACEncryptBytes(bytesIn []byte, passphrase string) []byte {
-	passHash, _ := passphraseToHash(passphrase)
+	passHash, _ := PassphraseToHash(passphrase)
 	targetPassHash := passHash[0:32]
 
 	// Create an AES Cipher
@@ -36,7 +36,7 @@ func AESMACDecryptBytes(bytesIn []byte, passphrase string) (decrypted bool, plai
 	// bytesIn must be decoded from base 64 first
 	// b64.StdEncoding.DecodeString(bytesIn)
 
-	passHash, _ := passphraseToHash(passphrase)
+	passHash, _ := PassphraseToHash(passphrase)
 	targetPassHash := passHash[0:32]
 
 	// Create an AES Cipher
