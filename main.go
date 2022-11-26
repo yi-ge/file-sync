@@ -14,7 +14,7 @@ import (
 var (
 	isDev    = os.Getenv("GO_ENV") == "development"
 	logger   service.Logger
-	apiURL   string
+	apiURL   = "https://api.yizcore.xyz"
 	password string
 )
 
@@ -211,6 +211,10 @@ func (p *program) Stop(s service.Service) error {
 func main() {
 	// svcFlag := flag.String("service", "", "Control the system service.")
 	// flag.Parse()
+
+	if isDev {
+		apiURL = "http://127.0.0.1:8000"
+	}
 
 	options := make(service.KeyValue)
 	options["Restart"] = "on-success"

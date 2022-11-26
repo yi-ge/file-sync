@@ -1,4 +1,5 @@
 <?php
+require_once './libs/Aes.php';
 
 class DeviceAddHandler
 {
@@ -81,7 +82,7 @@ class DeviceAddHandler
       $database->query("CREATE TABLE IF NOT EXISTS `log` (
         `id` BIGINT NOT NULL AUTO_INCREMENT,
         `email` VARCHAR(40) NOT NULL,
-        `fromMachineId` VARCHAR(40) NOT NULL,
+        `machineId` VARCHAR(40) NOT NULL,
         `action` VARCHAR(40) NOT NULL,
         `content` TEXT NULL,
         `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -122,17 +123,15 @@ class DeviceAddHandler
         ])
       ]);
 
-      $aes = new Aes();
-      // TODO: change key
-      $key = "abcdabcdabcdabcdabcdabcdabcdabcd";
-      $encrypted = $aes->encrypt($publicKey, $key);
+      $encryptedPublicKey = Aes::encrypt($publicKey, $verify);
+      $encryptedPrivateKey = Aes::encrypt($privateKey, $verify);
 
       echo json_encode([
         "status" => 1,
         "msg" => "New user added",
         "result" => [
-          "publicKey" => $encrypted,
-          "privateKey" => $privateKey
+          "publicKey" => $encryptedPublicKey,
+          "privateKey" => $encryptedPrivateKey
         ]
       ]);
     } else {

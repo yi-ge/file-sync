@@ -56,7 +56,7 @@ class Toro
       if (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], "application/json") === 0 && $request_method === 'post') {
         function parseJSON($str)
         {
-          $json = json_decode($str);
+          $json = json_decode($str, true);
           return json_last_error() == JSON_ERROR_NONE ? $json : [];
         }
 
@@ -111,7 +111,7 @@ class Toro
 
   private static function is_xhr_request()
   {
-    return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') || strpos($_SERVER['HTTP_ACCEPT'], "application/json") === 0 || (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], "application/json") === 0);
+    return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') || (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], "application/json") === 0) || (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], "application/json") === 0);
   }
 }
 

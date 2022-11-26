@@ -236,7 +236,7 @@ POST /device/add
   "email": "sha1(email)",
   "machineId": "sha1(sha256(machineId))",
   "machineName": "verify加密的machineName",
-  "verify": "sha1(密码的sha256中的前16个字符取sha1)",
+  "verify": "sha1(密码的sha256中的前16个字符取sha1)取后32个字符",
   "publicKey": "新生成的publicKey",
   "privateKey": "密码的sha256中的第二段16个字符进行加密的私钥（私钥密码是第三段16个字符）"
 }
