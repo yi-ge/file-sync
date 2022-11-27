@@ -147,7 +147,7 @@ docker run xx:file-sync-server
 
 ### PHP
 
-require PHP >= v5.4
+require PHP >= v5.4 (64bit)
 
 #### Server Configuration
 

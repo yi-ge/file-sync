@@ -123,8 +123,9 @@ class DeviceAddHandler
         ])
       ]);
 
-      $encryptedPublicKey = Aes::encrypt($publicKey, $verify);
-      $encryptedPrivateKey = Aes::encrypt($privateKey, $verify);
+      // * Not compatible with 32-bit systems
+      $encryptedPublicKey = Aes::encrypt((int) (microtime(true) * 1000) . '@' . $publicKey, $verify);
+      $encryptedPrivateKey = Aes::encrypt((int) (microtime(true) * 1000) . '@' . $privateKey, $verify);
 
       echo json_encode([
         "status" => 1,

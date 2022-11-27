@@ -60,7 +60,12 @@ func (p *program) Start(s service.Service) error {
 						}
 						survey.AskOne(prompt2, &machineName)
 
-						login(email, password, machineName)
+						err = login(email, password, machineName)
+						if err != nil {
+							fmt.Println(err.Error())
+						} else {
+							fmt.Println("Login and register your device successfully!")
+						}
 						return nil
 					},
 				},

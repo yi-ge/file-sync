@@ -149,7 +149,7 @@ docker run xx:file-sync-server
 
 ### PHP
 
-require PHP >= v5.4
+require PHP >= v5.4 （64位）
 
 #### Server Configuration
 
@@ -249,8 +249,8 @@ Return：
   "status": 1, // 新用户及新设备注册成功， 2： 老用户新设备注册成功
   // -2：设备已注册， -3：此用户已经存在但verify值验证失败
   "result": {
-    "publicKey": "verify作为密码 时间戳+公钥 加密", // 如果解密后的内容中的publicKey和传输的publicKey相同，则说明该用户是新用户。
-    "privateKey": "verify作为密码 时间戳+私钥 加密 - 密码的sha256中的第二段16个字符进行加密的私钥（私钥密码是第三段16个字符）" // 如果不相同，说明该用户是老用户，则需要以返回回来的publicKey和privateKey为准。
+    "publicKey": "verify作为密码 时间戳@公钥 加密", // 如果解密后的内容中的publicKey和传输的publicKey相同，则说明该用户是新用户。
+    "privateKey": "verify作为密码 时间戳@私钥 加密 - 密码的sha256中的第二段16个字符进行加密的私钥（私钥密码是第三段16个字符）" // 如果不相同，说明该用户是老用户，则需要以返回回来的publicKey和privateKey为准。
   }
 }
 ```
