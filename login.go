@@ -21,6 +21,7 @@ func registerDevice(
 	machineName string,
 	publicKey string,
 	privateKey string) error {
+	// TODO: db操作
 	return nil
 }
 
@@ -33,14 +34,12 @@ func login(email string, password string, machineName string) error {
 	rsaPrivateEncryptPassword := password[16:32]
 	_, encryptedPrivKeyPEMBase64, publicKeyPEM, err := utils.GenerateRSAKeypairPEM(4096, rsaPrivateKeyPassword)
 	if err != nil {
-		logger.Infof("GET request failed: %s\n", err)
-		return err
+		return errors.New("GET request failed: " + err.Error())
 	}
 
 	encryptedPrivateKeyStr, err := utils.AESCTREncrypt([]byte(encryptedPrivKeyPEMBase64), []byte(rsaPrivateEncryptPassword))
 	if err != nil {
-		logger.Infof("GET request failed: %s\n", err)
-		return err
+		return errors.New("AES encrypt failed: " + err.Error())
 	}
 	bodyMap := map[string]string{
 		"email":       email,
@@ -52,32 +51,27 @@ func login(email string, password string, machineName string) error {
 	}
 	jsonBody, err := jsoniter.Marshal(bodyMap)
 	if err != nil {
-		logger.Infof("GET request failed: %s\n", err)
 		return err
 	}
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(jsonBody))
 
 	if err != nil {
-		logger.Infof("GET request failed: %s\n", err)
-		return err
+		return errors.New("HTTP request failed: " + err.Error())
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		logger.Infof("Body read failed: %s\n", err)
 		return err
 	}
-
-	logger.Error(string(body))
 
 	status := jsoniter.Get(body, "status").ToInt()
 
 	if status != 1 && status != 2 {
-		logger.Infof("Server out status error: %d\n", status)
-		return errors.New("Server out status error: " + strconv.Itoa(status))
+		msg := jsoniter.Get(body, "msg").ToString()
+		return errors.New(msg)
 	}
 
 	isNewUser := status == 1
@@ -91,8 +85,7 @@ func login(email string, password string, machineName string) error {
 	publicKey, err = utils.AESCBCDecryptSafety([]byte(verify), publicKey)
 
 	if err != nil {
-		logger.Errorf("Secret decrypt error: %s\n", err)
-		return err
+		return errors.New("secret decrypt error: " + err.Error())
 	}
 
 	publicKeyCheck := strings.Split(publicKey, "@")
@@ -111,7 +104,7 @@ func login(email string, password string, machineName string) error {
 	nowTimestamp := time.Now().UnixNano() / 1e6
 
 	if nowTimestamp-publicKeyTimestamp > 2000 || nowTimestamp-privateKeyTimestamp > 2120 {
-		return errors.New("Calculation timeout.")
+		return errors.New("calculation timeout")
 	}
 
 	publicKey = publicKeyCheck[1]
@@ -120,13 +113,11 @@ func login(email string, password string, machineName string) error {
 	privateKey, err = utils.AESCBCDecryptSafety([]byte(verify), privateKey)
 
 	if err != nil || privateKey == "" {
-		logger.Errorf("Secret decrypt error: %s\n", err)
-		return err
+		return errors.New("secret decrypt error: " + err.Error())
 	}
 
 	if isNewUser {
 		if publicKey != publicKeyPEM.String() {
-			logger.Errorf("publicKey and publicKeyPEM are not equal")
 			return errors.New("publicKey and publicKeyPEM are not equal")
 		}
 
@@ -135,22 +126,19 @@ func login(email string, password string, machineName string) error {
 
 	privateKeyByte, err := base64.RawURLEncoding.DecodeString(privateKey)
 	if err != nil {
-		logger.Errorf("Secret decrypt error: %s\n", err)
-		return err
+		return errors.New("secret decrypt error: " + err.Error())
 	}
 
 	privateKeyEncrypted, err := utils.AESCTRDecrypt(privateKeyByte, []byte(rsaPrivateEncryptPassword))
 
 	if err != nil || len(privateKeyEncrypted) == 0 {
-		logger.Errorf("Secret decrypt error: %s\n", err)
-		return err
+		return errors.New("secret decrypt error: " + err.Error())
 	}
 
 	decrypted, plaintextBytes, err := utils.AESMACDecryptBytes(privateKeyEncrypted, rsaPrivateKeyPassword)
 
 	if err != nil || !decrypted {
-		logger.Errorf("Secret decrypt error: %s\n", err)
-		return err
+		return errors.New("secret decrypt error: " + err.Error())
 	}
 
 	privateKey = string(plaintextBytes)

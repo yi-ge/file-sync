@@ -62,6 +62,7 @@ func (p *program) Start(s service.Service) error {
 
 						err = login(email, password, machineName)
 						if err != nil {
+							fmt.Println("Login failure:")
 							fmt.Println(err.Error())
 						} else {
 							fmt.Println("Login and register your device successfully!")
@@ -165,7 +166,7 @@ func (p *program) Start(s service.Service) error {
 				},
 			},
 			Action: func(*cli.Context) error {
-				fmt.Println("boom! I say!")
+				// fmt.Println("boom! I say!")
 				return nil
 			},
 		}
