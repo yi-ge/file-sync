@@ -222,6 +222,8 @@ func main() {
 		apiURL = "http://127.0.0.1:8000"
 	}
 
+	dbInit()
+
 	options := make(service.KeyValue)
 	options["Restart"] = "on-success"
 	options["SuccessExitStatus"] = "1 2 8 SIGKILL"

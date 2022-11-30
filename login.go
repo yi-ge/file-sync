@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	badger "github.com/dgraph-io/badger/v3"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yi-ge/file-sync/utils"
 )
@@ -22,6 +23,18 @@ func registerDevice(
 	publicKey string,
 	privateKey string) error {
 	// TODO: db操作
+	err := db.Update(func(txn *badger.Txn) error {
+		// txn.Set([]byte("email"), []byte(email))
+		// txn.Set([]byte("password3"), []byte(password3))
+		// txn.Set([]byte("machineId"), []byte(machineId))
+		// txn.Set([]byte("machineName"), []byte(machineName))
+		// txn.Set([]byte("publicKey"), []byte(publicKey))
+		return txn.Set([]byte("privateKey"), []byte(privateKey))
+	})
+
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
