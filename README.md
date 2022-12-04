@@ -220,6 +220,30 @@ Due to frequent changes, currently listed in the Chinese README： [简体中文
 </p>
 </details>
 
+## Development
+
+<details><summary>CLICK ME</summary>
+<p>
+
+### Start the development and debugging environment
+
+You need to set the environment variable `GO_ENV` to `development` manually.
+
+For example, in the `PowerShell` environment in the `Windows` platform:
+
+```bash
+$Env:GO_ENV = 'development'
+```
+
+For example, `*unix`:
+
+```bash
+export GO_ENV="development"
+```
+
+</p>
+</details>
+
 ## About Safety
 
 According to the design principle of `server is untrustworthy`, all the data stored in the server is encrypted. Since `file-sync` uses asymmetric encryption and is used with SSL on the extranet, it is also secure during transmission.

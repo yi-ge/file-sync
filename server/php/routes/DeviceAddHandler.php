@@ -187,12 +187,16 @@ class DeviceAddHandler
             ])
           ]);
 
+          // * Not compatible with 32-bit systems
+          $encryptedPublicKey = Aes::encrypt((int) (microtime(true) * 1000) . '@' . $activePublicKey, $verify);
+          $encryptedPrivateKey = Aes::encrypt((int) (microtime(true) * 1000) . '@' . $activePrivateKey, $verify);
+
           echo json_encode([
             "status" => 2,
             "msg" => "Device added",
             "result" => [
-              "publicKey" => $activePublicKey,
-              "privateKey" => $activePrivateKey
+              "publicKey" => $encryptedPublicKey,
+              "privateKey" => $encryptedPrivateKey
             ]
           ]);
         }

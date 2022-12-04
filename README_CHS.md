@@ -419,6 +419,30 @@ Return：
 </p>
 </details>
 
+## 开发
+
+<details><summary>CLICK ME</summary>
+<p>
+
+### 进入开发调试环境
+
+需要手工设置环境变量`GO_ENV`为`development`。
+
+例如`Windows`平台中`PowerShell`环境下：
+
+```bash
+$Env:GO_ENV = 'development'
+```
+
+例如`*unix`：
+
+```bash
+export GO_ENV="development"
+```
+
+</p>
+</details>
+
 ## 关于安全性
 
 按照`服务器是不可信的`的设计原则，服务器中存储的数据均为加密数据。由于`file-sync`使用了非对称加密且在外网使用的时候配合SSL，在传输过程中也是安全的。

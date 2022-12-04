@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	badger "github.com/dgraph-io/badger/v3"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yi-ge/file-sync/utils"
 )
@@ -23,18 +22,40 @@ func registerDevice(
 	publicKey string,
 	privateKey string) error {
 	// TODO: db操作
-	err := db.Update(func(txn *badger.Txn) error {
-		// txn.Set([]byte("email"), []byte(email))
-		// txn.Set([]byte("password3"), []byte(password3))
-		// txn.Set([]byte("machineId"), []byte(machineId))
-		// txn.Set([]byte("machineName"), []byte(machineName))
-		// txn.Set([]byte("publicKey"), []byte(publicKey))
-		return txn.Set([]byte("privateKey"), []byte(privateKey))
-	})
+	// err := db.Update(func(txn *badger.Txn) error {
+	// 	// e := txn.Set([]byte("email"), []byte(email))
+	// 	// if e != nil {
+	// 	// 	return e
+	// 	// }
+	// 	// e = txn.Set([]byte("password3"), []byte(password3))
+	// 	// if e != nil {
+	// 	// 	return e
+	// 	// }
+	// 	// e = txn.Set([]byte("machineId"), []byte(machineId))
+	// 	// if e != nil {
+	// 	// 	return e
+	// 	// }
+	// 	// e = txn.Set([]byte("machineName"), []byte(machineName))
+	// 	// if e != nil {
+	// 	// 	return e
+	// 	// }
+	// 	// e = txn.Set([]byte("publicKey"), []byte(publicKey))
+	// 	// if e != nil {
+	// 	// 	return e
+	// 	// }
+	// 	return txn.Set([]byte("privateKey"), []byte(privateKey))
+	// })
+	// if err != nil {
+	// 	return err
+	// }
 
-	if err != nil {
-		return err
-	}
+	// wb := db.NewWriteBatch()
+	// defer wb.Cancel()
+
+	// wb.Set([]byte("privateKey"), []byte(privateKey))
+	// wb.Flush()
+
+	// defer db.Close()
 	return nil
 }
 
@@ -101,6 +122,12 @@ func login(email string, password string, machineName string) error {
 		return errors.New("secret decrypt error: " + err.Error())
 	}
 
+	privateKey, err = utils.AESCBCDecryptSafety([]byte(verify), privateKey)
+
+	if err != nil || privateKey == "" {
+		return errors.New("secret decrypt error: " + err.Error())
+	}
+
 	publicKeyCheck := strings.Split(publicKey, "@")
 	privateKeyCheck := strings.Split(privateKey, "@")
 
@@ -122,12 +149,6 @@ func login(email string, password string, machineName string) error {
 
 	publicKey = publicKeyCheck[1]
 	privateKey = privateKeyCheck[1]
-
-	privateKey, err = utils.AESCBCDecryptSafety([]byte(verify), privateKey)
-
-	if err != nil || privateKey == "" {
-		return errors.New("secret decrypt error: " + err.Error())
-	}
 
 	if isNewUser {
 		if publicKey != publicKeyPEM.String() {
