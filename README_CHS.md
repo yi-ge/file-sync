@@ -221,7 +221,7 @@ location / {
 
 ```text
 user: email, verify, publicKey, privateKey, createdAt
-device: email, machineId, machineName, createdAt
+device: email, machineId, machineName, machineKey, createdAt
 config: email, machineId, fileId, path, attribute, createdAt
 file: email, fileId, fileName, content, sha256, fromMachineId, updateAt
 log: email, machineId, action, content, createdAt
@@ -250,7 +250,8 @@ Return：
   // -2：设备已注册， -3：此用户已经存在但verify值验证失败
   "result": {
     "publicKey": "verify作为密码 时间戳@公钥 加密", // 如果解密后的内容中的publicKey和传输的publicKey相同，则说明该用户是新用户。
-    "privateKey": "verify作为密码 时间戳@私钥 加密 - 密码的sha256中的第二段16个字符进行加密的私钥（私钥密码是第三段16个字符）" // 如果不相同，说明该用户是老用户，则需要以返回回来的publicKey和privateKey为准。
+    "privateKey": "verify作为密码 时间戳@私钥 加密 - 密码的sha256中的第二段16个字符进行加密的私钥（私钥密码是第三段16个字符）", // 如果不相同，说明该用户是老用户，则需要以返回回来的publicKey和privateKey为准。
+    "machineKey": "由服务器端生成的machineKey"
   }
 }
 ```

@@ -219,10 +219,24 @@ func main() {
 	// flag.Parse()
 
 	if isDev {
+		log.Printf("Currently in development mode!")
 		apiURL = "http://127.0.0.1:8000"
 	}
 
-	dbInit()
+	err := fsInit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = dataInit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = cacheInit()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	options := make(service.KeyValue)
 	options["Restart"] = "on-success"

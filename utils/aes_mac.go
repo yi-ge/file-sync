@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"io"
 	"log"
 )
@@ -29,6 +30,22 @@ func AESMACEncryptBytes(bytesIn []byte, passphrase string) []byte {
 
 	// Seal will encrypt the file using the GCM mode, appending the nonce and tag (MAC value) to the final data, so we can use it to decrypt it later.
 	return gcm.Seal(nonce, nonce, bytesIn, nil)
+}
+
+// AESMACEncryptBytesSafety is a function that takes a plain byte slice and a passphrase and returns an encrypted byte slice
+func AESMACEncryptBytesSafety(bytesIn []byte, passphrase string) string {
+	cipherText := AESMACEncryptBytes(bytesIn, passphrase)
+	return base64.URLEncoding.EncodeToString(cipherText)
+}
+
+// AESMACDecryptBytesSafety takes in a byte slice from a file and a passphrase then returns if the encrypted byte slice was decrypted, if so the plaintext contents, and any errors
+func AESMACDecryptBytesSafety(bytesIn []byte, passphrase string) (decrypted bool, plaintextBytes []byte, err error) {
+	cipherText, err := base64.URLEncoding.DecodeString(string(bytesIn))
+	if err != nil {
+		return false, nil, err
+	}
+
+	return AESMACDecryptBytes([]byte(cipherText), passphrase)
 }
 
 // AESMACDecryptBytes takes in a byte slice from a file and a passphrase then returns if the encrypted byte slice was decrypted, if so the plaintext contents, and any errors

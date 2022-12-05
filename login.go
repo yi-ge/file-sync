@@ -15,47 +15,27 @@ import (
 )
 
 func registerDevice(
-	email string,
-	password3 string,
-	machineId string,
-	machineName string,
-	publicKey string,
-	privateKey string) error {
-	// TODO: db操作
-	// err := db.Update(func(txn *badger.Txn) error {
-	// 	// e := txn.Set([]byte("email"), []byte(email))
-	// 	// if e != nil {
-	// 	// 	return e
-	// 	// }
-	// 	// e = txn.Set([]byte("password3"), []byte(password3))
-	// 	// if e != nil {
-	// 	// 	return e
-	// 	// }
-	// 	// e = txn.Set([]byte("machineId"), []byte(machineId))
-	// 	// if e != nil {
-	// 	// 	return e
-	// 	// }
-	// 	// e = txn.Set([]byte("machineName"), []byte(machineName))
-	// 	// if e != nil {
-	// 	// 	return e
-	// 	// }
-	// 	// e = txn.Set([]byte("publicKey"), []byte(publicKey))
-	// 	// if e != nil {
-	// 	// 	return e
-	// 	// }
-	// 	return txn.Set([]byte("privateKey"), []byte(privateKey))
-	// })
-	// if err != nil {
-	// 	return err
-	// }
+	data Data, publicKey string, privateKey string) error {
+	err := setData(data)
+	if err != nil {
+		return err
+	}
 
-	// wb := db.NewWriteBatch()
-	// defer wb.Cancel()
+	privateKeyBuff := bytes.NewBufferString(privateKey)
+	publicKeyBuff := bytes.NewBufferString(publicKey)
 
-	// wb.Set([]byte("privateKey"), []byte(privateKey))
-	// wb.Flush()
+	privKeyFile, pubKeyFile, err := utils.WriteRSAKeyPair(privateKeyBuff, publicKeyBuff, workDir+getPathSplitStr())
+	if err != nil {
+		return err
+	}
 
-	// defer db.Close()
+	if !privKeyFile {
+		return errors.New("Private key write failure")
+	}
+
+	if !pubKeyFile {
+		return errors.New("Public key write failure")
+	}
 	return nil
 }
 
@@ -66,6 +46,7 @@ func login(email string, password string, machineName string) error {
 	verify := utils.GetSha1Str(password[:16])[8:]
 	rsaPrivateKeyPassword := password[32:48]
 	rsaPrivateEncryptPassword := password[16:32]
+	machineKeyEncryptPassword := password[48:]
 	_, encryptedPrivKeyPEMBase64, publicKeyPEM, err := utils.GenerateRSAKeypairPEM(4096, rsaPrivateKeyPassword)
 	if err != nil {
 		return errors.New("GET request failed: " + err.Error())
@@ -111,6 +92,7 @@ func login(email string, password string, machineName string) error {
 	isNewUser := status == 1
 	privateKey := jsoniter.Get(body, "result", "privateKey").ToString()
 	publicKey := jsoniter.Get(body, "result", "publicKey").ToString()
+	machineKey := jsoniter.Get(body, "result", "machineKey").ToString()
 
 	if publicKey == "" || privateKey == "" {
 		return errors.New("publicKey or privateKey is empty")
@@ -150,12 +132,24 @@ func login(email string, password string, machineName string) error {
 	publicKey = publicKeyCheck[1]
 	privateKey = privateKeyCheck[1]
 
+	encryptedMachineKey := utils.AESMACEncryptBytesSafety([]byte(machineKey), machineKeyEncryptPassword)
+
 	if isNewUser {
 		if publicKey != publicKeyPEM.String() {
 			return errors.New("publicKey and publicKeyPEM are not equal")
 		}
 
-		return registerDevice(email, password[:48], machineId, machineName, publicKey, privateKey)
+		data := Data{
+			Email:                     email,
+			Verify:                    verify,
+			RsaPrivateKeyPassword:     rsaPrivateKeyPassword,
+			RsaPrivateEncryptPassword: rsaPrivateEncryptPassword,
+			MachineId:                 machineId,
+			MachineName:               machineName,
+			EncryptedMachineKey:       string(encryptedMachineKey),
+		}
+
+		return registerDevice(data, publicKey, privateKey)
 	}
 
 	privateKeyByte, err := base64.RawURLEncoding.DecodeString(privateKey)
@@ -177,5 +171,15 @@ func login(email string, password string, machineName string) error {
 
 	privateKey = string(plaintextBytes)
 
-	return registerDevice(email, password[:48], machineId, machineName, publicKey, privateKey)
+	data := Data{
+		Email:                     email,
+		Verify:                    verify,
+		RsaPrivateKeyPassword:     rsaPrivateKeyPassword,
+		RsaPrivateEncryptPassword: rsaPrivateEncryptPassword,
+		MachineId:                 machineId,
+		MachineName:               machineName,
+		EncryptedMachineKey:       string(encryptedMachineKey),
+	}
+
+	return registerDevice(data, publicKey, privateKey)
 }

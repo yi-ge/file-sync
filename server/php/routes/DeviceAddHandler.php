@@ -1,5 +1,6 @@
 <?php
 require_once './libs/Aes.php';
+require_once './libs/UUID.php';
 
 class DeviceAddHandler
 {
@@ -49,6 +50,7 @@ class DeviceAddHandler
         `email` VARCHAR(40) NOT NULL,
         `machineId` VARCHAR(40) NOT NULL,
         `machineName` TEXT NOT NULL,
+        `machineKey` VARCHAR(36) NOT NULL,
         `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`), UNIQUE `machineId_keys` (`machineId`)
         ) ENGINE = InnoDB")->fetchAll();
@@ -102,10 +104,13 @@ class DeviceAddHandler
         "privateKey" => $privateKey
       ]);
 
+      $machineKey = UUID::create_uuid();
+
       $database->insert("device", [
         "email" => $email,
         "machineId" => $machineId,
-        "machineName" => $machineName
+        "machineName" => $machineName,
+        "machineKey" => $machineKey
       ]);
 
       $database->insert("log", [
@@ -119,7 +124,7 @@ class DeviceAddHandler
           "publicKey" => $publicKey,
           "privateKey" => $privateKey,
           "machineId" => $machineId,
-          "machineName" => $machineName,
+          "machineName" => $machineName
         ])
       ]);
 
@@ -132,7 +137,8 @@ class DeviceAddHandler
         "msg" => "New user added",
         "result" => [
           "publicKey" => $encryptedPublicKey,
-          "privateKey" => $encryptedPrivateKey
+          "privateKey" => $encryptedPrivateKey,
+          "machineKey" => $machineKey
         ]
       ]);
     } else {
@@ -168,10 +174,13 @@ class DeviceAddHandler
           return;
         }
 
+        $machineKey = UUID::create_uuid();
+
         $last_device_id = $database->insert("device", [
           "email" => $email,
           "machineId" => $machineId,
-          "machineName" => $machineName
+          "machineName" => $machineName,
+          "machineKey" => $machineKey
         ]);
 
         if ($last_device_id > 0) {
@@ -196,7 +205,8 @@ class DeviceAddHandler
             "msg" => "Device added",
             "result" => [
               "publicKey" => $encryptedPublicKey,
-              "privateKey" => $encryptedPrivateKey
+              "privateKey" => $encryptedPrivateKey,
+              "machineKey" => $machineKey
             ]
           ]);
         }

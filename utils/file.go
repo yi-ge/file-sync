@@ -27,7 +27,7 @@ func CurrentDir() string {
 // MakeDirIfNotExist create if the folder does not exist
 func MakeDirIfNotExist(path string) {
 	isExist, err := FileExists(path)
-	if isExist && err != nil {
+	if !isExist && err == nil {
 		os.MkdirAll(path, 0755)
 	}
 }
