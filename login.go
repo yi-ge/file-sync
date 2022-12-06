@@ -30,11 +30,11 @@ func registerDevice(
 	}
 
 	if !privKeyFile {
-		return errors.New("Private key write failure")
+		return errors.New("private key write failure")
 	}
 
 	if !pubKeyFile {
-		return errors.New("Public key write failure")
+		return errors.New("public key write failure")
 	}
 	return nil
 }
