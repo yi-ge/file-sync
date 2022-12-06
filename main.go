@@ -220,7 +220,7 @@ func main() {
 
 	if isDev {
 		log.Printf("Currently in development mode!")
-		apiURL = "http://127.0.0.1:8000"
+		apiURL = "http://localhost:8000"
 	}
 
 	err := fsInit()
