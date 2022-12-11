@@ -82,6 +82,14 @@ func (p *program) Start(s service.Service) error {
 					Value:       "current device",
 					Usage:       "remove device by device id",
 					Destination: &deviceId,
+					Action: func(ctx *cli.Context, s string) error {
+						prompt := &survey.Password{
+							Message: "Please type your password",
+						}
+						survey.AskOne(prompt, &password)
+
+						return nil
+					},
 				},
 			},
 			Commands: []*cli.Command{
