@@ -50,7 +50,7 @@ file-sync --login email@example.com
 ### 列出设备
 
 ```bash
-file-sync list --device
+file-sync --list-device
 ```
 
 ### 移除当前设备

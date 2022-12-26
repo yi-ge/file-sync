@@ -48,7 +48,7 @@ file-sync --login email@example.com
 ### List devices
 
 ```bash
-file-sync list --device
+file-sync --list-device
 ```
 
 ### Remove the current device

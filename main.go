@@ -91,6 +91,18 @@ func (p *program) Start(s service.Service) error {
 						return nil
 					},
 				},
+				&cli.BoolFlag{
+					Name:    "list-device",
+					Aliases: []string{"ld"},
+					Usage:   "list registered device",
+					Action: func(cCtx *cli.Context, b bool) error {
+						if b {
+							println("1")
+						}
+
+						return nil
+					},
+				},
 			},
 			Commands: []*cli.Command{
 				{
