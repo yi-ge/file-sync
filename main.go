@@ -16,6 +16,7 @@ var (
 	logger   service.Logger
 	apiURL   = "https://api.yizcore.xyz"
 	password string
+	data     Data
 )
 
 // Program structures.
@@ -88,6 +89,20 @@ func (p *program) Start(s service.Service) error {
 						}
 						survey.AskOne(prompt, &password)
 
+						data, err := getData()
+						if err != nil {
+							fmt.Println(err)
+						}
+
+						machineKey, res := checkPassword(data, password)
+						if res && machineKey != "" {
+							err = removeDevice(machineKey, data)
+							fmt.Println("Login failure:")
+							fmt.Println(err.Error())
+						} else {
+							fmt.Println("Password incorrect!")
+						}
+
 						return nil
 					},
 				},
@@ -97,7 +112,15 @@ func (p *program) Start(s service.Service) error {
 					Usage:   "list registered device",
 					Action: func(cCtx *cli.Context, b bool) error {
 						if b {
-							println("1")
+							data, err := getData()
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							err = listDevices(data)
+							if err != nil {
+								fmt.Println(err)
+							}
 						}
 
 						return nil

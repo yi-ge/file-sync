@@ -14,31 +14,6 @@ import (
 	"github.com/yi-ge/file-sync/utils"
 )
 
-func registerDevice(
-	data Data, publicKey string, privateKey string) error {
-	err := setData(data)
-	if err != nil {
-		return err
-	}
-
-	privateKeyBuff := bytes.NewBufferString(privateKey)
-	publicKeyBuff := bytes.NewBufferString(publicKey)
-
-	privKeyFile, pubKeyFile, err := utils.WriteRSAKeyPair(privateKeyBuff, publicKeyBuff, workDir+getPathSplitStr())
-	if err != nil {
-		return err
-	}
-
-	if !privKeyFile {
-		return errors.New("private key write failure")
-	}
-
-	if !pubKeyFile {
-		return errors.New("public key write failure")
-	}
-	return nil
-}
-
 func login(email string, password string, machineName string) error {
 	requestURL := apiURL + "/device/add"
 	machineId := utils.GetMachineID()

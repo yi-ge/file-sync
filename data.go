@@ -45,23 +45,23 @@ func dataInit() error {
 	return nil
 }
 
-func getData() ([]Data, error) {
+func getData() (Data, error) {
 	dataPath := getDataPath()
 	file, err := os.OpenFile(dataPath, os.O_RDONLY, 0600)
 	if err != nil {
-		return nil, err
+		return Data{}, err
 	}
 	defer file.Close()
 
-	var data []Data
+	var data Data
 	jsonBytes, err := io.ReadAll(file)
 	if err != nil {
-		return nil, err
+		return Data{}, err
 	}
 
 	err = jsoniter.Unmarshal(jsonBytes, &data)
 	if err != nil {
-		return nil, err
+		return Data{}, err
 	}
 
 	return data, nil
