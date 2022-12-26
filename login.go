@@ -75,6 +75,10 @@ func login(email string, password string, machineName string) error {
 		return errors.New("HTTP request failed: " + err.Error())
 	}
 
+	if resp.StatusCode != 200 {
+		return errors.New("HTTP request failed: " + resp.Status)
+	}
+
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 
