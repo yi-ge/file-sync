@@ -37,6 +37,7 @@ class DeviceAddHandler
       $database->query("CREATE TABLE IF NOT EXISTS `" . $tableName . "` (
         `id` BIGINT NOT NULL AUTO_INCREMENT,
         `email` VARCHAR(40) NOT NULL,
+        `emailSha1` VARCHAR(40) NOT NULL,
         `verify` VARCHAR(40) NOT NULL,
         `publicKey` TEXT NOT NULL,
         `privateKey` TEXT NOT NULL,
@@ -99,6 +100,7 @@ class DeviceAddHandler
     ) { // new user
       $database->insert("user", [
         "email" => $email,
+        "emailSha1" => sha1($email),
         "verify" => $verify,
         "publicKey" => $publicKey,
         "privateKey" => $privateKey

@@ -220,7 +220,7 @@ location / {
 ### 基础数据结构
 
 ```text
-user: email, verify, publicKey, privateKey, createdAt
+user: email, emailSha1, verify, publicKey, privateKey, createdAt
 device: email, machineId, machineName, machineKey, createdAt
 config: email, machineId, fileId, path, attribute, createdAt
 file: email, fileId, fileName, content, sha256, fromMachineId, updateAt
@@ -293,6 +293,7 @@ POST /device/remove
   "machineId": "sha1(sha256(machineId))",
   "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
+  "machineKey": "由服务器端生成的machineKey",
   "removeMachineId": "sha1(sha256(machineId))",
 }
 ```

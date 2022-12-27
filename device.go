@@ -3,8 +3,11 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"sort"
+	"strconv"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
@@ -51,18 +54,53 @@ func listDevices(data Data) error {
 	timestamp := time.Now().UnixNano() / 1e6
 
 	bodyMap := map[string]string{
-		"email":     data.Email,
+		"email":     utils.GetSha1Str(data.Email),
 		"machineId": machineId,
-		"timestamp": string(timestamp),
-		"token":     "verify",
+		"timestamp": strconv.FormatInt(timestamp, 10),
 	}
+
+	var dataParams string
+	var keys []string
+	for k := range bodyMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		fmt.Println("key:", k, "Value:", bodyMap[k])
+		dataParams = dataParams + k + "=" + bodyMap[k] + "&"
+	}
+
+	dataParams += data.Verify
+	fmt.Println(dataParams)
+	// ff := dataParams[0 : len(dataParams)-1]
+	// fmt.Println("去掉最后一个&：", ff)
+
+	//对字符串进行sha1哈希
+	// h := sha1.New()
+	// h.Write([]byte(dataParams))
+	// bs := h.Sum(nil)
+	// sign := hex.EncodeToString(bs)
+
+	// fmt.Println(sign)
+
+	prvKey, err := getPrivateKey()
+	if err != nil {
+		return err
+	}
+	token, err := utils.RsaSignWithSha1Hex(dataParams, string(prvKey))
+	if err != nil {
+		return err
+	}
+
+	bodyMap["token"] = utils.Base64SafetyEncode(token)
+
 	jsonBody, err := jsoniter.Marshal(bodyMap)
 	if err != nil {
 		return err
 	}
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(jsonBody))
-
 	if err != nil {
 		return errors.New("HTTP request failed: " + err.Error())
 	}
@@ -73,6 +111,7 @@ func listDevices(data Data) error {
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
+	fmt.Println(string(body))
 
 	if err != nil {
 		return err

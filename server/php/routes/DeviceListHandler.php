@@ -20,16 +20,16 @@ class DeviceListHandler
       return;
     }
 
-    $email = $json['email'];
+    $emailSha1 = $json['email'];
     // $machineId = $json['machineId'];
     // $timestamp = $json['timestamp'];
     $token = $json['token'];
 
-    $user = $database->get("user", "publicKey", [
-      "email" => $email
+    $user = $database->get("user", "*", [
+      "emailSha1" => $emailSha1
     ]);
 
-    if (count($user) == 0) {
+    if (!$user) {
       echo json_encode([
         "status" => -2,
         "msg" => "Invalid email",
@@ -38,13 +38,20 @@ class DeviceListHandler
       return;
     }
 
+    unset($json["token"]);
+    ksort($json);
+    $sign = '';
+    foreach ($json as $k => $v) {
+      $sign .= $k . "=" . $v . "&";
+    }
+    $sign = $sign . $user["verify"];
+
+    echo $token;
+
     $publicKey = $user["publicKey"];
     $publicKeyId = openssl_pkey_get_public($publicKey);
-    unset($json["token"]);
-    sort($json);
-    $toSign = json_encode($json);
 
-    if (openssl_verify($toSign, base64_decode($token), $publicKeyId) != 1) {
+    if (openssl_verify($sign, $token, $publicKeyId, OPENSSL_ALGO_SHA1) != 1) {
       echo json_encode([
         "status" => -3,
         "msg" => "Invalid token",
