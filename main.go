@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/fatih/color"
 	"github.com/kardianos/service"
 	"github.com/urfave/cli/v2"
 )
@@ -19,9 +20,7 @@ var (
 	data     Data
 )
 
-// Program structures.
-//
-//	Define Start and Stop methods.
+// Define Start and Stop methods.
 type program struct {
 	exit chan struct{}
 }
@@ -63,10 +62,10 @@ func (p *program) Start(s service.Service) error {
 
 						err = login(email, password, machineName)
 						if err != nil {
-							fmt.Println("Login failure:")
-							fmt.Println(err.Error())
+							color.Red("Login failure.")
+							color.Red(err.Error())
 						} else {
-							fmt.Println("Login and register your device successfully!")
+							color.Blue("Login and register your device successfully!")
 						}
 						return nil
 					},
@@ -91,16 +90,16 @@ func (p *program) Start(s service.Service) error {
 
 						data, err := getData()
 						if err != nil {
-							fmt.Println(err)
+							color.Red(err.Error())
 						}
 
 						machineKey, res := checkPassword(data, password)
 						if res && machineKey != "" {
 							err = removeDevice(machineKey, data)
-							fmt.Println("Login failure:")
-							fmt.Println(err.Error())
+							color.Red("Remove device failure.")
+							color.Red(err.Error())
 						} else {
-							fmt.Println("Password incorrect!")
+							color.Red("Password incorrect!")
 						}
 
 						return nil
