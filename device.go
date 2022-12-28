@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"sort"
 	"strconv"
 	"time"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yi-ge/file-sync/utils"
 )
@@ -72,7 +72,7 @@ func listDevices(data Data) error {
 	}
 
 	dataParams += data.Verify
-	fmt.Println(dataParams)
+	// fmt.Println(dataParams)
 	// ff := dataParams[0 : len(dataParams)-1]
 
 	privateKeyEncrypted, err := getPrivateKey()
@@ -114,7 +114,7 @@ func listDevices(data Data) error {
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	// fmt.Println(string(body))
 
 	if err != nil {
 		return err
@@ -128,9 +128,11 @@ func listDevices(data Data) error {
 	}
 
 	devices := jsoniter.Get(body, "result")
-	fmt.Printf("%T\n", devices)
+	// fmt.Printf("%T\n", devices)
+	// fmt.Println(devices.ToString())
+	displayRowSet := mapset.NewSet("id", "machineId", "machineKey")
 
-	fmt.Print(devices.ToString())
+	printTable(devices, displayRowSet)
 
 	return nil
 }
