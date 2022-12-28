@@ -83,6 +83,10 @@ func (p *program) Start(s service.Service) error {
 					Usage:       "remove device by device id",
 					Destination: &deviceId,
 					Action: func(ctx *cli.Context, s string) error {
+						if s == "" {
+							color.Red("Machine ID is required")
+							return nil
+						}
 						prompt := &survey.Password{
 							Message: "Please type your password",
 						}

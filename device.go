@@ -130,7 +130,7 @@ func listDevices(data Data) error {
 	devices := jsoniter.Get(body, "result")
 	// fmt.Printf("%T\n", devices)
 	// fmt.Println(devices.ToString())
-	displayRowSet := mapset.NewSet("id", "machineId", "machineKey")
+	displayRowSet := mapset.NewSet("id", "machineKey")
 
 	printTable(devices, displayRowSet)
 
