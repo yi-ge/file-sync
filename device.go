@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -67,33 +68,35 @@ func listDevices(data Data) error {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		fmt.Println("key:", k, "Value:", bodyMap[k])
 		dataParams = dataParams + k + "=" + bodyMap[k] + "&"
 	}
 
 	dataParams += data.Verify
 	fmt.Println(dataParams)
 	// ff := dataParams[0 : len(dataParams)-1]
-	// fmt.Println("去掉最后一个&：", ff)
 
-	//对字符串进行sha1哈希
-	// h := sha1.New()
-	// h.Write([]byte(dataParams))
-	// bs := h.Sum(nil)
-	// sign := hex.EncodeToString(bs)
-
-	// fmt.Println(sign)
-
-	prvKey, err := getPrivateKey()
-	if err != nil {
-		return err
-	}
-	token, err := utils.RsaSignWithSha1Hex(dataParams, string(prvKey))
+	privateKeyEncrypted, err := getPrivateKey()
 	if err != nil {
 		return err
 	}
 
-	bodyMap["token"] = utils.Base64SafetyEncode(token)
+	privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+	if err != nil {
+		return err
+	}
+
+	decrypted, plaintextBytes, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+	if err != nil || !decrypted {
+		return errors.New("secret decrypt error: " + err.Error())
+	}
+
+	token, err := utils.RsaSignWithSha1HexPkcs1(dataParams, string(plaintextBytes))
+	if err != nil {
+		return err
+	}
+
+	bodyMap["token"] = base64.RawURLEncoding.EncodeToString(token)
 
 	jsonBody, err := jsoniter.Marshal(bodyMap)
 	if err != nil {
@@ -124,7 +127,10 @@ func listDevices(data Data) error {
 		return errors.New(msg)
 	}
 
-	// privateKey := jsoniter.Get(body, "result").ToString()
+	devices := jsoniter.Get(body, "result")
+	fmt.Printf("%T\n", devices)
+
+	fmt.Print(devices.ToString())
 
 	return nil
 }

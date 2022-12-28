@@ -118,17 +118,17 @@ func login(email string, password string, machineName string) error {
 			return errors.New("publicKey and publicKeyPEM are not equal")
 		}
 
-		data := Data{
-			Email:                     email,
-			Verify:                    verify,
-			RsaPrivateKeyPassword:     rsaPrivateKeyPassword,
-			RsaPrivateEncryptPassword: rsaPrivateEncryptPassword,
-			MachineId:                 machineId,
-			MachineName:               machineName,
-			EncryptedMachineKey:       string(encryptedMachineKey),
-		}
+		// data := Data{
+		// 	Email:                     email,
+		// 	Verify:                    verify,
+		// 	RsaPrivateKeyPassword:     rsaPrivateKeyPassword,
+		// 	RsaPrivateEncryptPassword: rsaPrivateEncryptPassword,
+		// 	MachineId:                 machineId,
+		// 	MachineName:               machineName,
+		// 	EncryptedMachineKey:       string(encryptedMachineKey),
+		// }
 
-		return registerDevice(data, publicKey, privateKey)
+		// return registerDevice(data, publicKey, privateKey)
 	}
 
 	privateKeyByte, err := base64.RawURLEncoding.DecodeString(privateKey)
@@ -142,14 +142,6 @@ func login(email string, password string, machineName string) error {
 		return errors.New("secret decrypt error: " + err.Error())
 	}
 
-	decrypted, plaintextBytes, err := utils.AESMACDecryptBytes(privateKeyEncrypted, rsaPrivateKeyPassword)
-
-	if err != nil || !decrypted {
-		return errors.New("secret decrypt error: " + err.Error())
-	}
-
-	privateKey = string(plaintextBytes)
-
 	data := Data{
 		Email:                     email,
 		Verify:                    verify,
@@ -160,5 +152,5 @@ func login(email string, password string, machineName string) error {
 		EncryptedMachineKey:       string(encryptedMachineKey),
 	}
 
-	return registerDevice(data, publicKey, privateKey)
+	return registerDevice(data, publicKey, string(privateKeyEncrypted))
 }

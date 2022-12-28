@@ -68,13 +68,17 @@ func PemToEncryptedBytes(pem *bytes.Buffer, passphrase string) (b *bytes.Buffer)
 }
 
 // PemEncodeRSAPublicKey takes a DER formatted RSA Public Key object and converts it to PEM format
-func PemEncodeRSAPublicKey(caPubKey *rsa.PublicKey) *bytes.Buffer {
+func PemEncodeRSAPublicKey(caPubKey *rsa.PublicKey) (*bytes.Buffer, error) {
+	derPkix, err := x509.MarshalPKIXPublicKey(caPubKey)
+	if err != nil {
+		return nil, err
+	}
 	caPubKeyPEM := new(bytes.Buffer)
 	pem.Encode(caPubKeyPEM, &pem.Block{
-		Type:  "RSA PUBLIC KEY",
-		Bytes: x509.MarshalPKCS1PublicKey(caPubKey),
+		Type:  "PUBLIC KEY",
+		Bytes: derPkix,
 	})
-	return caPubKeyPEM
+	return caPubKeyPEM, nil
 }
 
 func GenerateRSAKeypairPEM(keySize int, rsaPrivateKeyPassword string) (privKeyPEM *bytes.Buffer, encryptedPrivKeyPEMBase64 string, publicKeyPEM *bytes.Buffer, err error) {
@@ -85,7 +89,10 @@ func GenerateRSAKeypairPEM(keySize int, rsaPrivateKeyPassword string) (privKeyPE
 
 	privKeyPEM, encryptedPrivKeyPEMBase64 = PemEncodeRSAPrivateKey(privateKey, rsaPrivateKeyPassword)
 
-	publicKeyPEM = PemEncodeRSAPublicKey(publicKey)
+	publicKeyPEM, err = PemEncodeRSAPublicKey(publicKey)
+	if err != nil {
+		return nil, "", nil, err
+	}
 
 	return privKeyPEM, encryptedPrivKeyPEMBase64, publicKeyPEM, nil
 }
@@ -132,6 +139,29 @@ func RsaSignWithSha1Hex(data string, prvKey string) (string, error) {
 	}
 	out := hex.EncodeToString(signature)
 	return out, nil
+}
+
+// RsaSignWithSha1HexPkcs1 签名：采用sha1算法进行签名并输出为hex格式（私钥PKCS1格式）
+func RsaSignWithSha1HexPkcs1(data string, pkcs1keyStr string) ([]byte, error) {
+	block, _ := pem.Decode([]byte(pkcs1keyStr))
+	if block == nil {
+		return nil, errors.New("no PrivateKey found")
+	}
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	h := sha1.New()
+	h.Write([]byte(data))
+	hash := h.Sum(nil)
+	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA1, hash[:])
+	if err != nil {
+		fmt.Printf("Error from signing: %s\n", err)
+		return nil, err
+	}
+
+	return signature, nil
 }
 
 // RsaVerySignWithSha1Base64 验签：对采用sha1算法进行签名后转base64格式的数据进行验签

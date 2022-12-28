@@ -46,10 +46,13 @@ class DeviceListHandler
     }
     $sign = $sign . $user["verify"];
 
-    echo $token;
+    $token = Aes::safetyBase64Decode($token);
 
     $publicKey = $user["publicKey"];
     $publicKeyId = openssl_pkey_get_public($publicKey);
+    // echo $sign . "\n";
+    // echo $token . "\n";
+    // echo "publicKeyId: (" . getType($publicKeyId) .") ". ($publicKeyId ? 'true' : 'false') . "\n";
 
     if (openssl_verify($sign, $token, $publicKeyId, OPENSSL_ALGO_SHA1) != 1) {
       echo json_encode([
@@ -60,8 +63,8 @@ class DeviceListHandler
       return;
     }
 
-    $machineList = $database->select("machine", "*", [
-      "email" => $email
+    $machineList = $database->select("device", "*", [
+      "email" => $user['email']
     ]);
 
     echo json_encode([
