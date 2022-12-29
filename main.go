@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/fatih/color"
 	"github.com/kardianos/service"
 	"github.com/urfave/cli/v2"
@@ -87,6 +88,19 @@ func (p *program) Start(s service.Service) error {
 							color.Red("Machine ID is required")
 							return nil
 						}
+
+						devices, err := listDevices(data)
+						if err != nil {
+							color.Red(err.Error())
+						}
+
+						for i := 0; i < devices.Size(); i++ {
+							line := devices.Get(i, "machineId").ToString()
+							fmt.Println(line)
+						}
+
+						removeMachineId := ""
+
 						prompt := &survey.Password{
 							Message: "Please type your password",
 						}
@@ -99,9 +113,15 @@ func (p *program) Start(s service.Service) error {
 
 						machineKey, res := checkPassword(data, password)
 						if res && machineKey != "" {
-							err = removeDevice(machineKey, data)
-							color.Red("Remove device failure.")
-							color.Red(err.Error())
+							res, err := removeDevice(machineKey, data, removeMachineId)
+							if err != nil {
+								color.Red("Remove device failure.")
+								color.Red(err.Error())
+							}
+
+							if res != nil {
+								color.Green("Remove device successfully!")
+							}
 						} else {
 							color.Red("Password incorrect!")
 						}
@@ -117,13 +137,15 @@ func (p *program) Start(s service.Service) error {
 						if b {
 							data, err := getData()
 							if err != nil {
-								fmt.Println(err)
+								color.Red(err.Error())
 							}
 
-							err = listDevices(data)
+							devices, err := listDevices(data)
 							if err != nil {
-								fmt.Println(err)
+								color.Red(err.Error())
 							}
+							displayRowSet := mapset.NewSet("id", "machineKey")
+							printTable(devices, displayRowSet)
 						}
 
 						return nil

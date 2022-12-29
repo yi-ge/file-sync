@@ -38,6 +38,9 @@ func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string]) {
 			for _, key := range line.Keys() {
 				if !displayRow.Contains(key) {
 					col[j] = line.Get(key).ToString()
+					if key == "machineId" {
+						col[j] = line.Get(key).ToString()[:10]
+					}
 					j += 1
 				}
 			}

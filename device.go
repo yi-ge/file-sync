@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yi-ge/file-sync/utils"
 )
@@ -40,16 +39,12 @@ func registerDevice(
 	return nil
 }
 
-func removeDevice(machineKey string, data Data) error {
-	return nil
-}
-
-func listDevices(data Data) error {
+func listDevices(data Data) (jsoniter.Any, error) {
 	requestURL := apiURL + "/device/list"
 	machineId := utils.GetMachineID()
 
 	if machineId != data.MachineId {
-		return errors.New("machineId does not match")
+		return nil, errors.New("machineId does not match")
 	}
 
 	timestamp := time.Now().UnixNano() / 1e6
@@ -77,39 +72,39 @@ func listDevices(data Data) error {
 
 	privateKeyEncrypted, err := getPrivateKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	decrypted, plaintextBytes, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
 
 	if err != nil || !decrypted {
-		return errors.New("secret decrypt error: " + err.Error())
+		return nil, errors.New("secret decrypt error: " + err.Error())
 	}
 
 	token, err := utils.RsaSignWithSha1HexPkcs1(dataParams, string(plaintextBytes))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bodyMap["token"] = base64.RawURLEncoding.EncodeToString(token)
 
 	jsonBody, err := jsoniter.Marshal(bodyMap)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
-		return errors.New("HTTP request failed: " + err.Error())
+		return nil, errors.New("HTTP request failed: " + err.Error())
 	}
 
 	if resp.StatusCode != 200 {
-		return errors.New("HTTP request failed: " + resp.Status)
+		return nil, errors.New("HTTP request failed: " + resp.Status)
 	}
 
 	defer resp.Body.Close()
@@ -117,22 +112,109 @@ func listDevices(data Data) error {
 	// fmt.Println(string(body))
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	status := jsoniter.Get(body, "status").ToInt()
 
 	if status != 1 {
 		msg := jsoniter.Get(body, "msg").ToString()
-		return errors.New(msg)
+		return nil, errors.New(msg)
 	}
 
 	devices := jsoniter.Get(body, "result")
 	// fmt.Printf("%T\n", devices)
 	// fmt.Println(devices.ToString())
-	displayRowSet := mapset.NewSet("id", "machineKey")
 
-	printTable(devices, displayRowSet)
+	return devices, nil
+}
 
-	return nil
+func removeDevice(machineKey string, data Data, removeMachineId string) (jsoniter.Any, error) {
+	requestURL := apiURL + "/device/remove"
+	machineId := utils.GetMachineID()
+
+	if machineId != data.MachineId {
+		return nil, errors.New("machineId does not match")
+	}
+
+	timestamp := time.Now().UnixNano() / 1e6
+
+	bodyMap := map[string]string{
+		"email":           utils.GetSha1Str(data.Email),
+		"machineId":       machineId,
+		"timestamp":       strconv.FormatInt(timestamp, 10),
+		"removeMachineId": removeMachineId,
+		"machineKey":      machineKey,
+	}
+
+	var dataParams string
+	var keys []string
+	for k := range bodyMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		dataParams = dataParams + k + "=" + bodyMap[k] + "&"
+	}
+
+	dataParams += data.Verify
+	// fmt.Println(dataParams)
+	// ff := dataParams[0 : len(dataParams)-1]
+
+	privateKeyEncrypted, err := getPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+
+	privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+	if err != nil {
+		return nil, err
+	}
+
+	decrypted, plaintextBytes, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+	if err != nil || !decrypted {
+		return nil, errors.New("secret decrypt error: " + err.Error())
+	}
+
+	token, err := utils.RsaSignWithSha1HexPkcs1(dataParams, string(plaintextBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	bodyMap["token"] = base64.RawURLEncoding.EncodeToString(token)
+
+	jsonBody, err := jsoniter.Marshal(bodyMap)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, errors.New("HTTP request failed: " + err.Error())
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, errors.New("HTTP request failed: " + resp.Status)
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	// fmt.Println(string(body))
+
+	if err != nil {
+		return nil, err
+	}
+
+	status := jsoniter.Get(body, "status").ToInt()
+
+	if status != 1 {
+		msg := jsoniter.Get(body, "msg").ToString()
+		return nil, errors.New(msg)
+	}
+
+	res := jsoniter.Get(body, "result")
+
+	return res, nil
 }
