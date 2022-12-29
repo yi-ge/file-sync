@@ -1,9 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -31,8 +35,7 @@ func (p *program) Start(s service.Service) error {
 		// logger.Info("Running in terminal.")
 
 		var (
-			email    string
-			deviceId string
+			email string
 		)
 
 		app := &cli.App{
@@ -78,38 +81,83 @@ func (p *program) Start(s service.Service) error {
 					Destination: &email,
 				},
 				&cli.StringFlag{
-					Name:        "remove-device",
-					Aliases:     []string{"rd"},
-					Value:       "current device",
+					Name:    "remove-device",
+					Aliases: []string{"rd"},
+					// Value:       "current",
+					DefaultText: "current machine",
+					Required:    false,
 					Usage:       "remove device by device id",
-					Destination: &deviceId,
 					Action: func(ctx *cli.Context, s string) error {
-						if s == "" {
-							color.Red("Machine ID is required")
-							return nil
-						}
-
-						devices, err := listDevices(data)
+						removeMachineId := ""
+						removeMachineName := ""
+						data, err := getData()
 						if err != nil {
 							color.Red(err.Error())
 						}
 
-						for i := 0; i < devices.Size(); i++ {
-							line := devices.Get(i, "machineId").ToString()
-							fmt.Println(line)
+						if s == "" {
+							removeMachineId = data.MachineId
+							removeMachineName = data.MachineName
+						} else {
+							devices, err := listDevices(data)
+							if err != nil {
+								color.Red(err.Error())
+								return err
+							}
+
+							for i := 0; i < devices.Size(); i++ {
+								machineId := devices.Get(i, "machineId").ToString()
+								if strings.Contains(machineId, s) {
+									removeMachineId = machineId
+									removeMachineName = devices.Get(i, "machineName").ToString()
+									break
+								}
+							}
+
+							if removeMachineId == "" {
+								pattern := "\\d+"
+								result, err := regexp.MatchString(pattern, s)
+								if err != nil {
+									color.Red(err.Error())
+									return err
+								}
+
+								if result {
+									index, err := strconv.Atoi(s)
+									if err != nil {
+										color.Red(err.Error())
+										return err
+									}
+									removeMachineId = devices.Get(index-1, "machineId").ToString()
+									removeMachineName = devices.Get(index-1, "machineName").ToString()
+								} else {
+									err = errors.New("invalid machine id")
+									color.Red(err.Error())
+									return err
+								}
+							}
 						}
 
-						removeMachineId := ""
+						if removeMachineId == "" {
+							err = errors.New("invalid machine id")
+							color.Red(err.Error())
+							return err
+						}
+
+						del := false
+						promptDel := &survey.Confirm{
+							Message: "Are you sure to remove the device (" + removeMachineName + " ID:" + removeMachineId[:10] + ")?",
+						}
+						survey.AskOne(promptDel, &del)
+
+						if !del {
+							return nil
+						}
 
 						prompt := &survey.Password{
 							Message: "Please type your password",
 						}
 						survey.AskOne(prompt, &password)
-
-						data, err := getData()
-						if err != nil {
-							color.Red(err.Error())
-						}
 
 						machineKey, res := checkPassword(data, password)
 						if res && machineKey != "" {

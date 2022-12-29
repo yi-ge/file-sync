@@ -4,17 +4,17 @@ go 1.19
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
+	github.com/deckarep/golang-set/v2 v2.1.0
 	github.com/denisbrodbeck/machineid v1.0.1
+	github.com/fatih/color v1.13.0
+	github.com/jedib0t/go-pretty/v6 v6.4.3
 	github.com/json-iterator/go v1.1.12
 	github.com/kardianos/service v1.2.2
-	github.com/urfave/cli/v2 v2.23.4
+	github.com/urfave/cli/v2 v2.23.7
 )
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
-	github.com/deckarep/golang-set/v2 v2.1.0 // indirect
-	github.com/fatih/color v1.13.0 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.4.3 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
