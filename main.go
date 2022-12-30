@@ -80,14 +80,17 @@ func (p *program) Start(s service.Service) error {
 					Usage:       "HTTP API server URL",
 					Destination: &email,
 				},
-				&cli.StringFlag{
-					Name:    "remove-device",
-					Aliases: []string{"rd"},
-					// Value:       "current",
+				&cli.BoolFlag{
+					Name:        "remove-device",
+					Aliases:     []string{"rd"},
 					DefaultText: "current machine",
 					Required:    false,
 					Usage:       "remove device by device id",
-					Action: func(ctx *cli.Context, s string) error {
+					Action: func(ctx *cli.Context, b bool) error {
+						s := ""
+						if ctx.NArg() > 0 {
+							s = ctx.Args().Get(0)
+						}
 						removeMachineId := ""
 						removeMachineName := ""
 						data, err := getData()
