@@ -45,6 +45,12 @@ Signing in with your email will automatically register your current device.
 file-sync --login email@example.com
 ```
 
+### Display system information
+
+```bash
+file-sync --info
+```
+
 ### List devices
 
 ```bash

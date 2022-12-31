@@ -39,6 +39,12 @@ file-sync --config https://example.com
 
 默认使用命令作者提供的免费公共服务器：<https://api.yizcore.xyz>
 
+### 显示系统信息
+
+```bash
+file-sync --info
+```
+
 ### 登录/注册设备
 
 使用您的邮箱登录，将自动注册当前设备。
