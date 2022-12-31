@@ -217,7 +217,11 @@ func (p *program) Start(s service.Service) error {
 								color.Red(err.Error())
 							}
 							displayRowSet := mapset.NewSet("id", "machineKey")
-							printTable(devices, displayRowSet)
+							if devices.Size() > 0 {
+								printTable(devices, displayRowSet)
+							} else {
+								color.Red("No registered devices.")
+							}
 						}
 
 						return nil
@@ -240,6 +244,21 @@ func (p *program) Start(s service.Service) error {
 					Usage:   "Sync files list",
 					Action: func(cCtx *cli.Context) error {
 						fmt.Println("completed task: ", cCtx.Args().First())
+						data, err := getData()
+						if err != nil {
+							color.Red(err.Error())
+						}
+
+						configs, err := listConfigs(data)
+						if err != nil {
+							color.Red(err.Error())
+						}
+						displayRowSet := mapset.NewSet("id")
+						if configs.Size() > 0 {
+							printTable(configs, displayRowSet)
+						} else {
+							color.Red("No file config.")
+						}
 						return nil
 					},
 				},
