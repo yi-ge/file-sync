@@ -92,7 +92,7 @@ func (p *program) Start(s service.Service) error {
 				&cli.BoolFlag{
 					Name:     "info",
 					Required: false,
-					Usage:    "show the system infomation",
+					Usage:    "Display system information",
 					Action: func(ctx *cli.Context, b bool) error {
 						color.Blue("HTTP API server URL: " + apiURL)
 
