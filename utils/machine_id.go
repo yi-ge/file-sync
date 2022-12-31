@@ -13,3 +13,11 @@ func GetMachineID() string {
 	}
 	return GetSha1Str(id)
 }
+
+func GetMachineIDUseSHA256() string {
+	id, err := machineid.ProtectedID("file-sync")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return GetSha1Str(id)
+}

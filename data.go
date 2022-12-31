@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"os"
 
@@ -86,6 +87,9 @@ func setData(data Data) error {
 
 func delData() error {
 	dataPath := getDataPath()
+	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
+		return errors.New("data file is not exists")
+	}
 	err := os.Remove(dataPath)
 	if err != nil {
 		return err

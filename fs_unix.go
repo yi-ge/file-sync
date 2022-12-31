@@ -26,6 +26,10 @@ func fsInit() error {
 	return nil
 }
 
+func getConfigPath() string {
+	return workDir + "/config"
+}
+
 func getCachePath() string {
 	return workDir + "/cache.json"
 }

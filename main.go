@@ -15,6 +15,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/kardianos/service"
 	"github.com/urfave/cli/v2"
+	"github.com/yi-ge/file-sync/utils"
 )
 
 var (
@@ -34,20 +35,15 @@ func (p *program) Start(s service.Service) error {
 	if service.Interactive() {
 		// logger.Info("Running in terminal.")
 
-		var (
-			email string
-		)
-
 		app := &cli.App{
 			Name:  "file-sync",
 			Usage: "Automatically sync single file.",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:        "login",
-					Value:       "",
-					Usage:       "login by email",
-					Destination: &email,
-					Action: func(ctx *cli.Context, s string) error {
+					Name:  "login",
+					Value: "",
+					Usage: "login by email",
+					Action: func(ctx *cli.Context, email string) error {
 						prompt := &survey.Password{
 							Message: "Please type your password",
 						}
@@ -75,10 +71,33 @@ func (p *program) Start(s service.Service) error {
 					},
 				},
 				&cli.StringFlag{
-					Name:        "config",
-					Value:       "https://file-sync.openapi.site/",
-					Usage:       "HTTP API server URL",
-					Destination: &email,
+					Name:  "config",
+					Value: "https://file-sync.openapi.site/",
+					Usage: "HTTP API server URL",
+					Action: func(ctx *cli.Context, url string) error {
+						if url != "" && utils.CheckURL(url) != nil {
+							color.Red("Invalid URL")
+							return nil
+						}
+
+						err := setConfig(url)
+
+						if err != nil {
+							color.Red(err.Error())
+						}
+
+						return nil
+					},
+				},
+				&cli.BoolFlag{
+					Name:     "info",
+					Required: false,
+					Usage:    "show the system infomation",
+					Action: func(ctx *cli.Context, b bool) error {
+						color.Blue("HTTP API server URL: " + apiURL)
+
+						return nil
+					},
 				},
 				&cli.BoolFlag{
 					Name:        "remove-device",
@@ -339,14 +358,19 @@ func main() {
 	// svcFlag := flag.String("service", "", "Control the system service.")
 	// flag.Parse()
 
-	if isDev {
-		log.Printf("Currently in development mode!")
-		apiURL = "http://localhost:8000"
-	}
-
 	err := fsInit()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if isDev {
+		log.Printf("Currently in development mode!")
+		apiURL = "http://localhost:8000"
+	} else {
+		config := getConfig()
+		if config != "" {
+			apiURL = config
+		}
 	}
 
 	err = dataInit()
