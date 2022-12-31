@@ -170,8 +170,10 @@ func (p *program) Start(s service.Service) error {
 								color.Red(err.Error())
 							}
 
-							if res != nil {
+							if res != "" {
 								color.Green("Remove device successfully!")
+							} else {
+								color.Red("Remove device failure. Unknown error.")
 							}
 						} else {
 							color.Red("Password incorrect!")

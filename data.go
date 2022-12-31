@@ -83,3 +83,12 @@ func setData(data Data) error {
 	file.Write(jsonBytes)
 	return nil
 }
+
+func delData() error {
+	dataPath := getDataPath()
+	err := os.Remove(dataPath)
+	if err != nil {
+		return err
+	}
+	return nil
+}

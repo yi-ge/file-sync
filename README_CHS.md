@@ -293,7 +293,7 @@ POST /device/remove
   "machineId": "sha1(sha256(machineId))",
   "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
-  "machineKey": "由服务器端生成的machineKey",
+  "machineKey": "sha1(由服务器端生成的machineKey)",
   "removeMachineId": "sha1(sha256(machineId))",
 }
 ```
@@ -431,6 +431,8 @@ Return：
 需要手工设置环境变量`GO_ENV`为`development`。
 
 例如`Windows`平台中`PowerShell`环境下：
+
+安装`xampp`，vscode配置：`"php.debug.executablePath": "C:\\xampp\\php\\php.exe"`。
 
 ```bash
 $Env:GO_ENV = 'development'

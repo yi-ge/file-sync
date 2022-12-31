@@ -26,7 +26,7 @@ func checkPassword(data Data, password string) (string, bool) {
 		return "", false
 	}
 
-	decrypted, machineKey, err := utils.AESMACDecryptBytesSafety([]byte(machineKeyEncryptPassword), machineKeyEncryptPassword)
+	decrypted, machineKey, err := utils.AESMACDecryptBytesSafety([]byte(data.EncryptedMachineKey), machineKeyEncryptPassword)
 
 	if err != nil {
 		return "", false

@@ -2,7 +2,9 @@ package utils
 
 import (
 	"bytes"
+	"errors"
 	"io"
+	"os"
 )
 
 // WriteKeyFile writes a public or private key file depending on the permissions, 644 for public, 400 for private
@@ -27,4 +29,23 @@ func WriteRSAKeyPair(privKey *bytes.Buffer, pubKey *bytes.Buffer, path string) (
 		return privKeyFile, false, err
 	}
 	return privKeyFile, pubKeyFile, nil
+}
+
+// DeleteRSAKeyPair delete key pair files
+func DeleteRSAKeyPair(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return errors.New("key pair files is not exists")
+	}
+
+	err := os.Remove(path + ".priv.pem")
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(path + ".pub.pem")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

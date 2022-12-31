@@ -185,7 +185,7 @@ class DeviceAddHandler
           "machineKey" => $machineKey
         ]);
 
-        if ($last_device_id > 0) {
+        if ($last_device_id->rowCount() > 0) {
           $database->insert("log", [
             "email" => $email,
             "machineId" => $machineId,
@@ -211,6 +211,7 @@ class DeviceAddHandler
               "machineKey" => $machineKey
             ]
           ]);
+          return;
         }
       }
 
