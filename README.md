@@ -71,6 +71,12 @@ Removing this device will delete all configuration information (but not user fil
 file-sync --remove-device <device id>
 ```
 
+or
+
+```bash
+file-sync --remove-device <number>
+```
+
 Removing this device will delete all configuration information (but not user files) from this device the next time it is synced. If this device needs to synchronize files again, you need to log in again for device registration.
 
 ### List of files

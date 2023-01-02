@@ -73,6 +73,12 @@ file-sync --remove-device
 file-sync --remove-device <machine id>
 ```
 
+或
+
+```bash
+file-sync --remove-device <number>
+```
+
 移除该设备后，该设备下次同步时将会删除该设备中所有的配置信息（但不包括用户文件）。此设备如需再次同步文件，需要重新登录进行设备注册。
 
 ### 列出文件列表

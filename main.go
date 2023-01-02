@@ -336,6 +336,8 @@ func (p *program) Start(s service.Service) error {
 		os.Exit(0)
 	} else {
 		logger.Info("Running under service manager.")
+		// TODO: 检查config是否已被从其他设备移除
+		// TODO: Check if config has been removed from other devices
 	}
 	p.exit = make(chan struct{})
 
