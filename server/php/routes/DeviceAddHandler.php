@@ -64,6 +64,7 @@ class DeviceAddHandler
         `fileId` VARCHAR(40) NOT NULL,
         `path` TEXT NOT NULL,
         `attribute` TEXT NULL,
+        `deletedAt` DATETIME NULL,
         `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
         ) ENGINE = InnoDB")->fetchAll();

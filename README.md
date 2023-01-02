@@ -137,6 +137,12 @@ file-sync remove <file id> <device id>
 
 Hint: All `<device id>`s can be abbreviated.
 
+## FAQ
+
+**Q: How do I synchronize multiple files?**
+
+A: This project is designed to synchronize a single configuration file, and you can synchronize multiple files by synchronizing the configuration entries of other file synchronization tools via `file-sync`.
+
 ## Use of self-hosted servers
 
 You can choose to deploy it in your own server with the Docker or build your own PHP runtime.

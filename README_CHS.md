@@ -139,6 +139,12 @@ file-sync remove <file id> <device id>
 
 提示：所有的`<device id>`均可用简写。
 
+## 常见问题
+
+**问题： 如何同步多个文件？**
+
+答： 此项目旨在同步单个配置文件，您可以通过`file-sync`同步其他文件同步工具的配置项，从而实现对多个文件的同步。
+
 ## 使用自托管服务器
 
 可以选择借助Docker或者自行搭建PHP运行环境在自己的服务器中部署。
@@ -228,7 +234,7 @@ location / {
 ```text
 user: email, emailSha1, verify, publicKey, privateKey, createdAt
 device: email, machineId, machineName, machineKey, createdAt
-config: email, machineId, fileId, path, attribute, createdAt
+config: email, machineId, fileId, path, attribute, deletedAt, createdAt
 file: email, emailSha1, fileId, fileName, content, sha256, fromMachineId, updateAt
 log: email, machineId, action, content, createdAt
 ```
@@ -355,13 +361,10 @@ POST /file/config
   "machineId": "sha1(sha256(machineId))",
   "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
-  "config": {
-    "fileId": "fileId",
-    "fileName": "私钥加密后的fileName，如果是添加新同步则为空",
-    "action": "add/remove",
-    "machineId": "sha1(sha256(machineId))",
-    "path": "私钥加密后的path"
-  }
+  "fileId": "fileId",
+  "action": "add/remove",
+  "path": "私钥加密后的path，删除无该参数",
+  "attribute": "预留配置项"
 }
 ```
 
@@ -419,6 +422,7 @@ Return：
 ```json
 {
   "status": 1
+  "result": file // only in download
 }
 ```
 

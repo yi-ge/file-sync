@@ -64,7 +64,8 @@ class FileConfigsHandler
       "config.id",
       "file.id"
     ], [
-      "config.email" => $user['email']
+      "config.email" => $user['email'],
+      "config.deletedAt" => null,
     ]);
 
     echo json_encode([
