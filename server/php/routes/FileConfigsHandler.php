@@ -58,14 +58,19 @@ class FileConfigsHandler
       return;
     }
 
-    $fileList = $database->select("file", "*", [
-      "email" => $user['email']
+    $configList = $database->select("config", [
+      "[>]file" => ["fileId"]
+    ], [
+      "config.id",
+      "file.id"
+    ], [
+      "config.email" => $user['email']
     ]);
 
     echo json_encode([
       "status" => 1,
       "msg" => "OK",
-      "result" => $fileList
+      "result" => $configList
     ]);
   }
 }

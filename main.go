@@ -254,7 +254,7 @@ func (p *program) Start(s service.Service) error {
 							color.Red(err.Error())
 						}
 						displayRowSet := mapset.NewSet("id")
-						if configs.Size() > 0 {
+						if configs != nil && configs.Size() > 0 {
 							printTable(configs, displayRowSet)
 						} else {
 							color.Red("No file config.")
