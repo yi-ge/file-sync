@@ -72,6 +72,7 @@ class DeviceAddHandler
       $database->query("CREATE TABLE IF NOT EXISTS `file` (
         `id` BIGINT NOT NULL AUTO_INCREMENT,
         `email` VARCHAR(40) NOT NULL,
+        `emailSha1` VARCHAR(40) NOT NULL,
         `fileId` VARCHAR(40) NOT NULL,
         `fileName` TEXT NULL,
         `content` LONGTEXT NULL,

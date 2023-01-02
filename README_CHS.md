@@ -229,7 +229,7 @@ location / {
 user: email, emailSha1, verify, publicKey, privateKey, createdAt
 device: email, machineId, machineName, machineKey, createdAt
 config: email, machineId, fileId, path, attribute, createdAt
-file: email, fileId, fileName, content, sha256, fromMachineId, updateAt
+file: email, emailSha1, fileId, fileName, content, sha256, fromMachineId, updateAt
 log: email, machineId, action, content, createdAt
 ```
 
@@ -379,13 +379,9 @@ POST /file/check
 
 ```json
 {
-  "timestamp": "时间戳",
-  "machineId": "sha1(sha256(machineId))",
-  "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
   "fileId": "fileId",
-  "sha256": "文件sha256",
-  "updateAt": "文件最后一次编辑时间"
+  "sha256": "文件sha256"
 }
 ```
 

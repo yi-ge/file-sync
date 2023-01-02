@@ -101,3 +101,46 @@ func listConfigs(data Data) (jsoniter.Any, error) {
 
 	return configs, nil
 }
+
+func fileCheck(email string, fileId string, sha256 string) (int, error) {
+	requestURL := apiURL + "/file/check"
+	timestamp := time.Now().UnixNano() / 1e6
+
+	bodyMap := map[string]string{
+		"email":     utils.GetSha1Str(email),
+		"fileId":    fileId,
+		"sha256":    sha256,
+		"timestamp": strconv.FormatInt(timestamp, 10),
+	}
+
+	jsonBody, err := jsoniter.Marshal(bodyMap)
+	if err != nil {
+		return -1, err
+	}
+
+	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return -1, errors.New("HTTP request failed: " + err.Error())
+	}
+
+	if resp.StatusCode != 200 {
+		return -1, errors.New("HTTP request failed: " + resp.Status)
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	// fmt.Println(string(body))
+
+	if err != nil {
+		return -1, err
+	}
+
+	status := jsoniter.Get(body, "status").ToInt()
+
+	if status != 0 || status != 1 || status != 2 {
+		msg := jsoniter.Get(body, "msg").ToString()
+		return -1, errors.New(msg)
+	}
+
+	return status, nil
+}
