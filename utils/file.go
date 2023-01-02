@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -82,4 +85,21 @@ func WriteByteFile(path string, content []byte, mode int, overwrite bool) (bool,
 		return true, err
 	}
 	return false, nil
+}
+
+// FileSHA256 The sha256 hash of the file
+func FileSHA256(filePath string) (string, error) {
+	var hashValue string
+	file, err := os.Open(filePath)
+	if err != nil {
+		return hashValue, err
+	}
+	defer file.Close()
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return hashValue, err
+	}
+	hashInBytes := hash.Sum(nil)
+	hashValue = hex.EncodeToString(hashInBytes)
+	return hashValue, nil
 }

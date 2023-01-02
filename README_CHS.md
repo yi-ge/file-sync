@@ -93,6 +93,9 @@ file-sync list
 file-sync add <file path>
 ```
 
+- `--name`: 指定便以识别的文件名称
+- `--machineId`: 为其它设备添加配置
+
 ### 添加已经存在的文件同步项
 
 ```bash
@@ -134,7 +137,7 @@ file-sync remove <file id>
 ### 移除单个设备的文件同步项
 
 ```bash
-file-sync remove <file id> <number>
+file-sync remove <file id / number>
 ```
 
 或
@@ -369,7 +372,7 @@ POST /file/config
   "email": "sha1(email)",
   "action": "add/remove",
   "actionMachineId": "目标machineId",
-  "fileId": "fileId",
+  "fileId": "fileId，由首次添加的文件sha256取sha1生成",
   "path": "私钥加密后的path，删除无该参数",
   "attribute": "预留配置项"
 }
@@ -416,7 +419,7 @@ POST /file/sync
   "machineId": "sha1(sha256(machineId))",
   "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
-  "fileId": "fileId，由首次添加的文件sha256取sha1生成",
+  "fileId": "fileId",
   "fileName": "文件名",
   "sha256": "文件sha256",
   "updateAt": "文件最后一次编辑时间",

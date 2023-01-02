@@ -91,6 +91,9 @@ file-sync list
 file-sync add <file path>
 ```
 
+- `--name`: Specify the name of the file to be recognized
+- `--machineId`: Adding configurations for other devices
+
 ### Add a file sync item that already exists
 
 ```bash
@@ -132,7 +135,7 @@ Note that this will remove all sync items from the file.
 ### Remove file sync item from a single device
 
 ```bash
-file-sync remove <file id> <number>
+file-sync remove <file id / number>
 ```
 
 or

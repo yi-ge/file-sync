@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -92,7 +93,7 @@ func (p *program) Start(s service.Service) error {
 				&cli.BoolFlag{
 					Name:     "info",
 					Required: false,
-					Usage:    "Display system information",
+					Usage:    "display system information",
 					Action: func(ctx *cli.Context, b bool) error {
 						color.Blue("HTTP API server URL: " + apiURL)
 
@@ -233,8 +234,85 @@ func (p *program) Start(s service.Service) error {
 					Name:    "add",
 					Aliases: []string{"a"},
 					Usage:   "Add a file to sync list",
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:        "name",
+							DefaultText: "defined by file",
+							Value:       "",
+							Usage:       "name of the file display",
+						},
+						&cli.StringFlag{
+							Name:        "machineId",
+							DefaultText: "current device",
+							Value:       "",
+							Usage:       "target machine ID",
+						},
+					},
 					Action: func(cCtx *cli.Context) error {
-						fmt.Println("added task: ", cCtx.Args().First())
+						data, err := getData()
+						if err != nil {
+							color.Red(err.Error())
+						}
+
+						// TODO: 参数异常
+						var (
+							name            = ""
+							actionMachineId = ""
+							filePath        = ""
+							fileId          = ""
+						)
+
+						if cCtx.Args().Get(1) != "" {
+							if cCtx.Args().Get(1) == "--name" {
+								name = cCtx.Args().Get(2)
+								filePath = cCtx.Args().Get(0)
+								sha256, err := utils.FileSHA256(filePath)
+								if err != nil {
+									color.Red(err.Error())
+								}
+								fileId = utils.GetSha1Str(sha256)
+								actionMachineId = data.MachineId
+							} else if cCtx.Args().Get(1) == "--machineId" {
+								filePath = cCtx.Args().Get(0)
+								actionMachineId = cCtx.Args().Get(2)
+								name = path.Base(filePath)
+								sha256, err := utils.FileSHA256(filePath)
+								if err != nil {
+									color.Red(err.Error())
+								}
+								fileId = utils.GetSha1Str(sha256)
+							} else {
+								fileId = cCtx.Args().Get(0)
+								filePath = cCtx.Args().Get(1)
+								if cCtx.Args().Get(2) == "--name" {
+									name = cCtx.Args().Get(3)
+								} else {
+									name = path.Base(filePath)
+								}
+							}
+						} else {
+							filePath = cCtx.Args().Get(0)
+							name = path.Base(filePath)
+							sha256, err := utils.FileSHA256(filePath)
+							if err != nil {
+								color.Red(err.Error())
+							}
+							fileId = utils.GetSha1Str(sha256)
+							actionMachineId = data.MachineId
+						}
+
+						fmt.Println(name)
+						fmt.Println(actionMachineId)
+						fmt.Println(fileId)
+						fmt.Println("name: ", name)
+						fmt.Println("fileId: ", fileId)
+						fmt.Println("actionMachineId: ", actionMachineId)
+
+						json, err := addConfig(fileId, filePath, actionMachineId, data)
+						if err != nil {
+							color.Red(err.Error())
+						}
+						fmt.Println(json)
 						return nil
 					},
 				},
