@@ -25,10 +25,12 @@ class FileCheckHandler
 
     $file = $database->select("file", "sha256", [
       "emailSha1" => $emailSha1,
-      "fileId" => $fileId
+      "fileId" => $fileId,
+      "ORDER" => "updateAt DESC",
+	    "LIMIT" => 1
     ]);
 
-    if (!$file) {
+    if (!$file || $file->rowCount() != 1) {
       echo json_encode([
         "status" => 0,
         "msg" => "File not found",

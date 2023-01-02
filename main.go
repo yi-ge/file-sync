@@ -243,7 +243,6 @@ func (p *program) Start(s service.Service) error {
 					Aliases: []string{"l"},
 					Usage:   "Sync files list",
 					Action: func(cCtx *cli.Context) error {
-						fmt.Println("completed task: ", cCtx.Args().First())
 						data, err := getData()
 						if err != nil {
 							color.Red(err.Error())

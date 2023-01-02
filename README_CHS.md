@@ -397,7 +397,8 @@ Return：
 
 POST /file/sync
 
-不带"content"和"updateAt"为下载，否则是上载。
+不带"updateAt"为下载，否则是上载。
+下载无需"content"、"sha256"和"fileName"参数。
 
 ```json
 {
@@ -406,6 +407,7 @@ POST /file/sync
   "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
   "fileId": "fileId，由首次添加的文件sha256取sha1生成",
+  "fileName": "文件名",
   "sha256": "文件sha256",
   "updateAt": "文件最后一次编辑时间",
   "content": "私钥加密的文件内容"
