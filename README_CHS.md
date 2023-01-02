@@ -70,7 +70,7 @@ file-sync --remove-device
 ### 移除指定设备
 
 ```bash
-file-sync --remove-device <device id>
+file-sync --remove-device <machine id>
 ```
 
 移除该设备后，该设备下次同步时将会删除该设备中所有的配置信息（但不包括用户文件）。此设备如需再次同步文件，需要重新登录进行设备注册。
@@ -134,10 +134,10 @@ file-sync remove <file id> <number>
 或
 
 ```bash
-file-sync remove <file id> <device id>
+file-sync remove <file id> <machine id>
 ```
 
-提示：所有的`<device id>`均可用简写。
+提示：所有的`<machine id>`均可用简写。
 
 ## 常见问题
 
@@ -361,8 +361,9 @@ POST /file/config
   "machineId": "sha1(sha256(machineId))",
   "token": "签名[所有字段按json的key的ASCII字符顺序进行升序排列]",
   "email": "sha1(email)",
-  "fileId": "fileId",
   "action": "add/remove",
+  "actionMachineId": "目标machineId",
+  "fileId": "fileId",
   "path": "私钥加密后的path，删除无该参数",
   "attribute": "预留配置项"
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/yi-ge/file-sync/utils"
 )
 
-func addConfig(fileId string, path string, data Data) (jsoniter.Any, error) {
+func addConfig(fileId string, path string, actionMachineId string, data Data) (jsoniter.Any, error) {
 	requestURL := apiURL + "/file/config"
 	machineId := utils.GetMachineID()
 
@@ -25,13 +25,14 @@ func addConfig(fileId string, path string, data Data) (jsoniter.Any, error) {
 	timestamp := time.Now().UnixNano() / 1e6
 
 	bodyMap := map[string]string{
-		"email":     utils.GetSha1Str(data.Email),
-		"machineId": machineId,
-		"action":    "add",
-		"fileId":    fileId,
-		"path":      path,
-		"attribute": "",
-		"timestamp": strconv.FormatInt(timestamp, 10),
+		"email":           utils.GetSha1Str(data.Email),
+		"machineId":       machineId,
+		"action":          "add",
+		"fileId":          fileId,
+		"path":            path,
+		"actionMachineId": actionMachineId,
+		"attribute":       "",
+		"timestamp":       strconv.FormatInt(timestamp, 10),
 	}
 
 	var dataParams string
@@ -106,7 +107,7 @@ func addConfig(fileId string, path string, data Data) (jsoniter.Any, error) {
 	return res, nil
 }
 
-func removeConfig(fileId string, data Data) error {
+func removeConfig(fileId string, actionMachineId string, data Data) error {
 	requestURL := apiURL + "/file/config"
 	machineId := utils.GetMachineID()
 
@@ -117,12 +118,13 @@ func removeConfig(fileId string, data Data) error {
 	timestamp := time.Now().UnixNano() / 1e6
 
 	bodyMap := map[string]string{
-		"email":     utils.GetSha1Str(data.Email),
-		"machineId": machineId,
-		"fileId":    fileId,
-		"action":    "remove",
-		"attribute": "",
-		"timestamp": strconv.FormatInt(timestamp, 10),
+		"email":           utils.GetSha1Str(data.Email),
+		"machineId":       machineId,
+		"fileId":          fileId,
+		"action":          "remove",
+		"actionMachineId": actionMachineId,
+		"attribute":       "",
+		"timestamp":       strconv.FormatInt(timestamp, 10),
 	}
 
 	var dataParams string

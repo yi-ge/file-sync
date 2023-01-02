@@ -12,6 +12,7 @@ class FileConfigHandler
       !array_key_exists('timestamp', $json) ||
       !array_key_exists('fileId', $json) ||
       !array_key_exists('action', $json) ||
+      !array_key_exists('actionMachineId', $json) ||
       !array_key_exists('attribute', $json) ||
       !array_key_exists('token', $json)
     ) {
@@ -75,7 +76,7 @@ class FileConfigHandler
 
       $last_config_id = $database->insert("config", [
         "email" => $user['email'],
-        "machineId" => $json['machineId'],
+        "machineId" => $json['actionMachineId'],
         "fileId" => $json['fileId'],
         "path" => $json['path'],
         "attribute" => $json['attribute']
@@ -96,7 +97,7 @@ class FileConfigHandler
       ], [
         "email" => $user['email'],
         "fileId" => $json['fileId'],
-        "machineId" => $json['machineId'],
+        "machineId" => $json['actionMachineId'],
         "deletedAt" => null
       ]);
 
