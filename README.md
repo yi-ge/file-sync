@@ -68,7 +68,7 @@ Removing this device will delete all configuration information (but not user fil
 ### Remove the specified device
 
 ```bash
-file-sync --remove-device <device id>
+file-sync --remove-device <machine id>
 ```
 
 or
@@ -149,10 +149,10 @@ file-sync remove <file id / number>
 or
 
 ```bash
-file-sync remove <file id> <device id>
+file-sync remove --machineId <machine id> <file id>
 ```
 
-Hint: All `<device id>`s can be abbreviated.
+Hint: All `<machine id>`, `<file id>` can be abbreviated.
 
 ## FAQ
 

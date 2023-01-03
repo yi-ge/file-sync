@@ -293,7 +293,60 @@ func (p *program) Start(s service.Service) error {
 						}
 
 						if cCtx.String("machineId") != "" {
-							actionMachineId = cCtx.String("machineId")
+							s := cCtx.String("machineId")
+							actionMachineId = ""
+							actionMachineName := ""
+
+							if s == "" {
+								actionMachineId = data.MachineId
+								actionMachineName = data.MachineName
+							} else {
+								devices, err := listDevices(data)
+								if err != nil {
+									color.Red(err.Error())
+									return err
+								}
+
+								for i := 0; i < devices.Size(); i++ {
+									machineId := devices.Get(i, "machineId").ToString()
+									if strings.Contains(machineId, s) {
+										actionMachineId = machineId
+										actionMachineName = devices.Get(i, "machineName").ToString()
+										break
+									}
+								}
+
+								if actionMachineId == "" {
+									pattern := "\\d+"
+									result, err := regexp.MatchString(pattern, s)
+									if err != nil {
+										color.Red(err.Error())
+										return err
+									}
+
+									if result {
+										index, err := strconv.Atoi(s)
+										if err != nil {
+											color.Red(err.Error())
+											return err
+										}
+										actionMachineId = devices.Get(index-1, "machineId").ToString()
+										actionMachineName = devices.Get(index-1, "machineName").ToString()
+									} else {
+										err = errors.New("invalid machine id")
+										color.Red(err.Error())
+										return err
+									}
+								}
+							}
+
+							if actionMachineId == "" {
+								err = errors.New("invalid machine id")
+								color.Red(err.Error())
+								return err
+							}
+
+							color.Blue("Action machine: " + actionMachineName + "(" + actionMachineId + ")")
 						} else {
 							actionMachineId = data.MachineId
 						}

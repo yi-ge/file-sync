@@ -151,10 +151,10 @@ file-sync remove <file id / number>
 或
 
 ```bash
-file-sync remove <file id> <machine id>
+file-sync remove --machineId <machine id> <file id>
 ```
 
-提示：所有的`<machine id>`均可用简写。
+提示：所有的`<machine id>`、`<file id>`均可用简写。
 
 ## 常见问题
 
