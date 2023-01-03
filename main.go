@@ -16,6 +16,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/kardianos/service"
 	"github.com/urfave/cli/v2"
+	"github.com/yi-ge/file-sync/config"
 	"github.com/yi-ge/file-sync/utils"
 )
 
@@ -92,9 +93,11 @@ func (p *program) Start(s service.Service) error {
 				},
 				&cli.BoolFlag{
 					Name:     "info",
+					Aliases:  []string{"version"},
 					Required: false,
 					Usage:    "display system information",
 					Action: func(ctx *cli.Context, b bool) error {
+						color.Blue("Version: " + config.GetVersion())
 						color.Blue("HTTP API server URL: " + apiURL)
 
 						return nil
@@ -465,9 +468,9 @@ func main() {
 		log.Printf("Currently in development mode!")
 		apiURL = "http://localhost:8000"
 	} else {
-		config := getConfig()
-		if config != "" {
-			apiURL = config
+		conf := getConfig()
+		if conf != "" {
+			apiURL = conf
 		}
 	}
 
