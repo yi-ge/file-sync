@@ -48,8 +48,6 @@ func addConfig(fileId string, fileName string, path string, actionMachineId stri
 	}
 
 	dataParams += data.Verify
-	// fmt.Println(dataParams)
-	// ff := dataParams[0 : len(dataParams)-1]
 
 	privateKeyEncrypted, err := getPrivateKey()
 	if err != nil {

@@ -75,6 +75,22 @@ class FileConfigHandler
         return;
       }
 
+      $configCheck = $database->select("config", "fileId", [
+        "email" => $user['email'],
+        "machineId" => $json['actionMachineId'],
+        "fileId" => $json['fileId'],
+        "deletedAt" => null
+      ]);
+
+      if ($configCheck && sizeof($configCheck) >= 1) {
+        echo json_encode([
+          "status" => -5,
+          "msg" => "This machine is bound to this file sync item.",
+          "result" => null
+        ]);
+        return;
+      }
+
       $last_config_id = $database->insert("config", [
         "email" => $user['email'],
         "machineId" => $json['actionMachineId'],

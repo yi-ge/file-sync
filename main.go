@@ -237,12 +237,12 @@ func (p *program) Start(s service.Service) error {
 			},
 			Commands: []*cli.Command{
 				{
-					Name:     "add",
-					Aliases:  []string{"a"},
-					Usage:    "Add a file to sync list",
-					HelpName: "add",
-					// SkipFlagParsing: false,
-					ArgsUsage: "[fileId] [path]",
+					Name:            "add",
+					Aliases:         []string{"a"},
+					Usage:           "Add a file to sync list",
+					HelpName:        "add",
+					SkipFlagParsing: false,
+					ArgsUsage:       "[fileId] [path]",
 					Flags: []cli.Flag{
 						&cli.StringFlag{
 							Name:        "name",
@@ -267,7 +267,6 @@ func (p *program) Start(s service.Service) error {
 							color.Red(err.Error())
 						}
 
-						// TODO: 参数异常
 						var (
 							actionMachineId = ""
 							fileName        = ""
@@ -307,8 +306,9 @@ func (p *program) Start(s service.Service) error {
 						json, err := addConfig(fileId, fileName, filePath, actionMachineId, data)
 						if err != nil {
 							color.Red(err.Error())
+							return nil
 						}
-						fmt.Println(json)
+						color.Blue("The file (" + json.Get("fileId").ToString() + ") was successfully added to the sync item.")
 						return nil
 					},
 				},
@@ -336,11 +336,100 @@ func (p *program) Start(s service.Service) error {
 					},
 				},
 				{
-					Name:    "remove",
-					Aliases: []string{"r"},
-					Usage:   "Remove a file config in sync list",
+					Name:      "remove",
+					Aliases:   []string{"r"},
+					Usage:     "Remove a file config in sync list",
+					ArgsUsage: "[fileId]",
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:        "machineId",
+							DefaultText: "current device",
+							Value:       "",
+							Usage:       "target machine ID",
+						},
+					},
 					Action: func(cCtx *cli.Context) error {
-						fmt.Println("completed task: ", cCtx.Args().First())
+						if cCtx.NArg() == 0 {
+							return cli.ShowSubcommandHelp(cCtx)
+						}
+
+						data, err := getData()
+						if err != nil {
+							color.Red(err.Error())
+						}
+
+						actionMachineId := data.MachineId
+
+						if cCtx.String("machineId") != "" {
+							actionMachineId = cCtx.String("machineId")
+						}
+
+						fileId := ""
+						fileName := ""
+						inputArg := cCtx.Args().First()
+
+						configs, err := listConfigs(data)
+						if err != nil {
+							color.Red(err.Error())
+						}
+
+						for i := 0; i < configs.Size(); i++ {
+							theFileId := configs.Get(i, "fileId").ToString()
+							if strings.Contains(theFileId, inputArg) {
+								fileId = theFileId
+								fileName = configs.Get(i, "fileName").ToString()
+								break
+							}
+						}
+
+						if fileId == "" {
+							pattern := "\\d+"
+							result, err := regexp.MatchString(pattern, inputArg)
+							if err != nil {
+								color.Red(err.Error())
+								return err
+							}
+
+							if result {
+								index, err := strconv.Atoi(inputArg)
+								if err != nil {
+									color.Red(err.Error())
+									return err
+								}
+								fileId = configs.Get(index-1, "fileId").ToString()
+								fileName = configs.Get(index-1, "fileName").ToString()
+							} else {
+								err = errors.New("invalid file id")
+								color.Red(err.Error())
+								return err
+							}
+						}
+
+						if fileId == "" {
+							err = errors.New("invalid file id")
+							color.Red(err.Error())
+							return err
+						}
+
+						del := false
+						promptDel := &survey.Confirm{
+							Message: "Are you sure to remove the file (" + fileName + " ID:" + fileId[:10] + ") config?",
+						}
+						survey.AskOne(promptDel, &del)
+
+						if !del {
+							return nil
+						}
+
+						err = removeConfig(fileId, actionMachineId, data)
+						if err != nil {
+							color.Red("Remove config failure.")
+							color.Red(err.Error())
+							return nil
+						}
+
+						color.Green("Remove config successfully!")
+
 						return nil
 					},
 				},
