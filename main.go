@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -286,10 +286,18 @@ func (p *program) Start(s service.Service) error {
 							fileId = utils.GetSha1Str(sha256)
 						}
 
+						if !filepath.IsAbs(filePath) {
+							filePath, err = filepath.Abs(filePath)
+							if err != nil {
+								color.Red(err.Error())
+								return nil
+							}
+						}
+
 						if cCtx.String("name") != "" {
 							fileName = cCtx.String("name")
 						} else {
-							fileName = path.Base(filePath)
+							fileName = filepath.Base(filePath)
 						}
 
 						if cCtx.String("machineId") != "" {
