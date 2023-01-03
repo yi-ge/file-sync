@@ -225,7 +225,7 @@ func (p *program) Start(s service.Service) error {
 							}
 							displayRowSet := mapset.NewSet("id", "machineKey")
 							if devices.Size() > 0 {
-								printTable(devices, displayRowSet)
+								printTable(devices, displayRowSet, true, false)
 							} else {
 								color.Red("No registered devices.")
 							}
@@ -361,7 +361,7 @@ func (p *program) Start(s service.Service) error {
 							color.Red(err.Error())
 							return nil
 						}
-						color.Blue("The file (" + json.Get("fileId").ToString() + ") was successfully added to the sync item.")
+						color.Blue("The file (" + fileName + " ID:" + json.Get("fileId").ToString()[:10] + ") was successfully added to the sync item.")
 						return nil
 					},
 				},
@@ -369,6 +369,12 @@ func (p *program) Start(s service.Service) error {
 					Name:    "list",
 					Aliases: []string{"l"},
 					Usage:   "Sync files list",
+					Flags: []cli.Flag{
+						&cli.BoolFlag{
+							Name:  "all",
+							Usage: "Display all items",
+						},
+					},
 					Action: func(cCtx *cli.Context) error {
 						data, err := getData()
 						if err != nil {
@@ -379,10 +385,15 @@ func (p *program) Start(s service.Service) error {
 						if err != nil {
 							color.Red(err.Error())
 						}
-						// displayRowSet := mapset.NewSet("id", "email", "attribute", "deletedAt")
-						displayRowSet := mapset.NewSet("id", "attribute")
+						displayRowSet := mapset.NewSet("id", "machineId", "attribute", "createdAt")
+						hiddenLongPath := true
+						if cCtx.Bool("all") {
+							displayRowSet = mapset.NewSet("id", "attribute")
+							hiddenLongPath = false
+						}
+
 						if configs != nil && configs.Size() > 0 {
-							printTable(configs, displayRowSet)
+							printTable(configs, displayRowSet, true, hiddenLongPath)
 						} else {
 							color.Red("No file config.")
 						}
@@ -606,8 +617,16 @@ func (p *program) Start(s service.Service) error {
 		os.Exit(0)
 	} else {
 		logger.Info("Running under service manager.")
-		// TODO: 检查config是否已被从其他设备移除
-		// TODO: Check if config has been removed from other devices
+		data, err := getData()
+
+		if err == nil {
+			configs, err := listConfigs(data)
+			if err == nil {
+				// TODO: 检查config是否已被从其他设备移除
+				// TODO: Check if config has been removed from other devices
+				fmt.Println(configs.Keys())
+			}
+		}
 	}
 	p.exit = make(chan struct{})
 

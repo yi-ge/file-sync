@@ -9,7 +9,8 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string]) {
+func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string], AutoMerge bool, hiddenLongPath bool) {
+	// rowConfigAutoMerge := table.RowConfig{AutoMerge: AutoMerge}
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	if jsonArray == nil {
@@ -19,9 +20,8 @@ func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string]) {
 	firstLine := jsonArray.Get(0)
 	if firstLine != nil {
 		keys := firstLine.Keys()
-		row := make([]interface{}, len(keys)-displayRow.Cardinality()+1)
-		i := 1
-		row[0] = "No"
+		row := make([]interface{}, len(keys)-displayRow.Cardinality())
+		i := 0
 		for _, v := range keys {
 			if !displayRow.Contains(v) {
 				row[i] = v
@@ -32,14 +32,20 @@ func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string]) {
 
 		for i := 0; i < jsonArray.Size(); i++ {
 			line := jsonArray.Get(i)
-			col := make([]interface{}, line.Size()-displayRow.Cardinality()+1)
-			j := 1
-			col[0] = i + 1
+			col := make([]interface{}, line.Size()-displayRow.Cardinality())
+			j := 0
 			for _, key := range line.Keys() {
 				if !displayRow.Contains(key) {
 					col[j] = line.Get(key).ToString()
-					if key == "machineId" {
+					if key == "machineId" || key == "fileId" {
 						col[j] = line.Get(key).ToString()[:10]
+					} else if key == "path" {
+						value := line.Get(key).ToString()
+						if hiddenLongPath && len(value) > 30 {
+							col[j] = "..." + value[len(value)-30:]
+						} else {
+							col[j] = value
+						}
 					}
 					j += 1
 				}
@@ -48,16 +54,15 @@ func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string]) {
 			t.AppendRow(col)
 		}
 
-		// t.AppendSeparator()
+		colConfigs := []table.ColumnConfig{}
+
+		for i := 0; i < jsonArray.Size(); i++ {
+			colConfigs = append(colConfigs, table.ColumnConfig{Number: i + 1, AutoMerge: true})
+		}
+
+		t.SetColumnConfigs(colConfigs)
+
 		t.SetAutoIndex(true)
-		// t.SetColumnConfigs([]table.ColumnConfig{
-		//     {Number: 1, AutoMerge: true},
-		//     {Number: 2, AutoMerge: true},
-		//     {Number: 3, AutoMerge: true},
-		//     {Number: 4, AutoMerge: true},
-		//     {Number: 5, Align: text.AlignCenter, AlignFooter: text.AlignCenter, AlignHeader: text.AlignCenter},
-		//     {Number: 6, Align: text.AlignCenter, AlignFooter: text.AlignCenter, AlignHeader: text.AlignCenter},
-		// })
 		t.SetOutputMirror(os.Stdout)
 		t.SetStyle(table.StyleLight)
 		t.Style().Options.SeparateRows = true

@@ -81,7 +81,7 @@ class DeviceAddHandler
         `sha256` VARCHAR(64) NOT NULL,
         `fromMachineId` VARCHAR(40) NOT NULL,
         `updateAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`), UNIQUE `fileId_keys` (`fileId`)
+        PRIMARY KEY (`id`)
         ) ENGINE = InnoDB")->fetchAll();
 
       // log table

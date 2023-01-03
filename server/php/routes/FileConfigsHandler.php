@@ -63,21 +63,35 @@ class FileConfigsHandler
     //   "deletedAt" => null,
     // ]);
 
-    $configList = $database->select("config", [
-      "[>]file" => ["fileId"]
-    ], [
-      "config.id",
-      "config.machineId",
-      "config.fileName",
-      "config.path",
-      "config.attribute",
-      "config.createdAt",
-      "file.updateAt"
-    ], [
-      "config.email" => $user['email'],
-      "config.deletedAt" => null,
-      "ORDER" => ["file.updateAt" => "DESC"],
-    ]);
+    $configList = $database->query("
+      SELECT
+        config.id as id,
+        config.fileName as fileName,
+        config.fileId as fileId,
+        file.updateAt as updateAt,
+        config.machineId as machineId,
+        device.machineName as machineName,
+        config.path as path,
+        config.attribute as attribute,
+        config.createdAt as createdAt
+      FROM
+        config
+      LEFT JOIN file on file.id = (
+        SELECT f.id FROM file AS f
+        WHERE config.fileId = f.fileId
+        ORDER BY f.updateAt DESC
+        LIMIT 1
+      )
+      LEFT JOIN device on config.machineId = device.machineId
+      WHERE
+        <config.email> = :email AND
+        deletedAt is NULL
+      ORDER BY
+        config.fileId,
+        config.createdAt,
+        config.id", [
+          ":email" => $user['email'],
+        ])->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
       "status" => 1,
