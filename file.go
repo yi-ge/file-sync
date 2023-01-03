@@ -14,7 +14,7 @@ import (
 	"github.com/yi-ge/file-sync/utils"
 )
 
-func addConfig(fileId string, path string, actionMachineId string, data Data) (jsoniter.Any, error) {
+func addConfig(fileId string, fileName string, path string, actionMachineId string, data Data) (jsoniter.Any, error) {
 	requestURL := apiURL + "/file/config"
 	machineId := utils.GetMachineID()
 
@@ -29,6 +29,7 @@ func addConfig(fileId string, path string, actionMachineId string, data Data) (j
 		"machineId":       machineId,
 		"action":          "add",
 		"fileId":          fileId,
+		"fileName":        fileName,
 		"path":            path,
 		"actionMachineId": actionMachineId,
 		"attribute":       "",

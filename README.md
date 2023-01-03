@@ -94,6 +94,14 @@ file-sync add <file path>
 - `--name`: Specify the name of the file to be recognized
 - `--machineId`: Adding configurations for other devices
 
+example:
+
+```bash
+file-sync add --name profile --machineId 123 /root/.profile
+```
+
+Configure the device with `machineId` as "123", add `/root/.profile` to the file sync item, and display the file configuration name as `profile`.
+
 ### Add a file sync item that already exists
 
 ```bash

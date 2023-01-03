@@ -96,6 +96,14 @@ file-sync add <file path>
 - `--name`: 指定便以识别的文件名称
 - `--machineId`: 为其它设备添加配置
 
+例如：
+
+```bash
+file-sync add --name profile配置 --machineId 123 /root/.profile
+```
+
+即配置`machineId`为“123”的设备，添加`/root/.profile`到文件同步项，并展示该文件配置名称为`profile配置`。
+
 ### 添加已经存在的文件同步项
 
 ```bash
@@ -243,7 +251,7 @@ location / {
 ```text
 user: email, emailSha1, verify, publicKey, privateKey, createdAt
 device: email, machineId, machineName, machineKey, createdAt
-config: email, machineId, fileId, path, attribute, deletedAt, createdAt
+config: email, machineId, fileId, fileName, path, attribute, deletedAt, createdAt
 file: email, emailSha1, fileId, fileName, content, sha256, fromMachineId, updateAt
 log: email, machineId, action, content, createdAt
 ```
@@ -373,6 +381,7 @@ POST /file/config
   "action": "add/remove",
   "actionMachineId": "目标machineId",
   "fileId": "fileId，由首次添加的文件sha256取sha1生成",
+  "fileName": "展示的文件名，删除无该参数",
   "path": "私钥加密后的path，删除无该参数",
   "attribute": "预留配置项"
 }

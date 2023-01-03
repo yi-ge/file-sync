@@ -64,7 +64,8 @@ class FileConfigHandler
 
     if ($json['action'] == 'add') { // Add
       if (
-        !array_key_exists('path', $json)
+        !array_key_exists('path', $json) ||
+        !array_key_exists('fileName', $json)
       ) {
         echo json_encode([
           "status" => -4,
@@ -78,6 +79,7 @@ class FileConfigHandler
         "email" => $user['email'],
         "machineId" => $json['actionMachineId'],
         "fileId" => $json['fileId'],
+        "fileName" => $json['fileName'],
         "path" => $json['path'],
         "attribute" => $json['attribute']
       ]);

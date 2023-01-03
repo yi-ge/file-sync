@@ -15,17 +15,18 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/fatih/color"
 	"github.com/kardianos/service"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"github.com/yi-ge/file-sync/config"
 	"github.com/yi-ge/file-sync/utils"
 )
 
 var (
-	isDev    = os.Getenv("GO_ENV") == "development"
-	logger   service.Logger
-	apiURL   = "https://api.yizcore.xyz"
-	password string
-	data     Data
+	isDev          = os.Getenv("GO_ENV") == "development"
+	logger         service.Logger
+	apiURL         = "https://api.yizcore.xyz"
+	password       string
+	data           Data
+	configInstance = config.Instance()
 )
 
 // Define Start and Stop methods.
@@ -38,8 +39,10 @@ func (p *program) Start(s service.Service) error {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{
-			Name:  "file-sync",
-			Usage: "Automatically sync single file.",
+			Name:    "file-sync",
+			Version: configInstance.GetVersion(),
+			Usage:   "Automatically sync single file.",
+			Suggest: true,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "login",
@@ -92,12 +95,12 @@ func (p *program) Start(s service.Service) error {
 					},
 				},
 				&cli.BoolFlag{
-					Name:     "info",
-					Aliases:  []string{"version"},
+					Name: "info",
+					// Aliases:  []string{"version"},
 					Required: false,
 					Usage:    "display system information",
 					Action: func(ctx *cli.Context, b bool) error {
-						color.Blue("Version: " + config.GetVersion())
+						color.Blue("file-sync version: " + configInstance.GetVersion())
 						color.Blue("HTTP API server URL: " + apiURL)
 
 						return nil
@@ -234,9 +237,12 @@ func (p *program) Start(s service.Service) error {
 			},
 			Commands: []*cli.Command{
 				{
-					Name:    "add",
-					Aliases: []string{"a"},
-					Usage:   "Add a file to sync list",
+					Name:     "add",
+					Aliases:  []string{"a"},
+					Usage:    "Add a file to sync list",
+					HelpName: "add",
+					// SkipFlagParsing: false,
+					ArgsUsage: "[fileId] [path]",
 					Flags: []cli.Flag{
 						&cli.StringFlag{
 							Name:        "name",
@@ -252,6 +258,10 @@ func (p *program) Start(s service.Service) error {
 						},
 					},
 					Action: func(cCtx *cli.Context) error {
+						if cCtx.NArg() == 0 {
+							return cli.ShowSubcommandHelp(cCtx)
+						}
+
 						data, err := getData()
 						if err != nil {
 							color.Red(err.Error())
@@ -259,59 +269,42 @@ func (p *program) Start(s service.Service) error {
 
 						// TODO: 参数异常
 						var (
-							name            = ""
 							actionMachineId = ""
+							fileName        = ""
 							filePath        = ""
 							fileId          = ""
 						)
 
 						if cCtx.Args().Get(1) != "" {
-							if cCtx.Args().Get(1) == "--name" {
-								name = cCtx.Args().Get(2)
-								filePath = cCtx.Args().Get(0)
-								sha256, err := utils.FileSHA256(filePath)
-								if err != nil {
-									color.Red(err.Error())
-								}
-								fileId = utils.GetSha1Str(sha256)
-								actionMachineId = data.MachineId
-							} else if cCtx.Args().Get(1) == "--machineId" {
-								filePath = cCtx.Args().Get(0)
-								actionMachineId = cCtx.Args().Get(2)
-								name = path.Base(filePath)
-								sha256, err := utils.FileSHA256(filePath)
-								if err != nil {
-									color.Red(err.Error())
-								}
-								fileId = utils.GetSha1Str(sha256)
-							} else {
-								fileId = cCtx.Args().Get(0)
-								filePath = cCtx.Args().Get(1)
-								if cCtx.Args().Get(2) == "--name" {
-									name = cCtx.Args().Get(3)
-								} else {
-									name = path.Base(filePath)
-								}
-							}
+							fileId = cCtx.Args().Get(0)
+							filePath = cCtx.Args().Get(1)
 						} else {
 							filePath = cCtx.Args().Get(0)
-							name = path.Base(filePath)
 							sha256, err := utils.FileSHA256(filePath)
 							if err != nil {
 								color.Red(err.Error())
 							}
 							fileId = utils.GetSha1Str(sha256)
+						}
+
+						if cCtx.String("name") != "" {
+							fileName = cCtx.String("name")
+						} else {
+							fileName = path.Base(filePath)
+						}
+
+						if cCtx.String("machineId") != "" {
+							actionMachineId = cCtx.String("machineId")
+						} else {
 							actionMachineId = data.MachineId
 						}
 
-						fmt.Println(name)
-						fmt.Println(actionMachineId)
-						fmt.Println(fileId)
-						fmt.Println("name: ", name)
-						fmt.Println("fileId: ", fileId)
-						fmt.Println("actionMachineId: ", actionMachineId)
+						// fmt.Println("name: ", name)
+						// fmt.Println("fileId: ", fileId)
+						// fmt.Println("actionMachineId: ", actionMachineId)
+						// fmt.Println("path: ", filePath)
 
-						json, err := addConfig(fileId, filePath, actionMachineId, data)
+						json, err := addConfig(fileId, fileName, filePath, actionMachineId, data)
 						if err != nil {
 							color.Red(err.Error())
 						}

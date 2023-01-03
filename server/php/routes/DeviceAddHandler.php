@@ -62,6 +62,7 @@ class DeviceAddHandler
         `email` VARCHAR(40) NOT NULL,
         `machineId` VARCHAR(40) NOT NULL,
         `fileId` VARCHAR(40) NOT NULL,
+        `fileName` TEXT NULL,
         `path` TEXT NOT NULL,
         `attribute` TEXT NULL,
         `deletedAt` DATETIME NULL,
