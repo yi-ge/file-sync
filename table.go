@@ -49,6 +49,18 @@ func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string]) {
 		}
 
 		// t.AppendSeparator()
+		t.SetAutoIndex(true)
+		// t.SetColumnConfigs([]table.ColumnConfig{
+		//     {Number: 1, AutoMerge: true},
+		//     {Number: 2, AutoMerge: true},
+		//     {Number: 3, AutoMerge: true},
+		//     {Number: 4, AutoMerge: true},
+		//     {Number: 5, Align: text.AlignCenter, AlignFooter: text.AlignCenter, AlignHeader: text.AlignCenter},
+		//     {Number: 6, Align: text.AlignCenter, AlignFooter: text.AlignCenter, AlignHeader: text.AlignCenter},
+		// })
+		t.SetOutputMirror(os.Stdout)
+		t.SetStyle(table.StyleLight)
+		t.Style().Options.SeparateRows = true
 		t.Render()
 	} else {
 		color.Cyan("No data found.")

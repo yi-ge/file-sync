@@ -379,7 +379,8 @@ func (p *program) Start(s service.Service) error {
 						if err != nil {
 							color.Red(err.Error())
 						}
-						displayRowSet := mapset.NewSet("id", "email", "attribute", "deletedAt")
+						// displayRowSet := mapset.NewSet("id", "email", "attribute", "deletedAt")
+						displayRowSet := mapset.NewSet("id", "attribute")
 						if configs != nil && configs.Size() > 0 {
 							printTable(configs, displayRowSet)
 						} else {

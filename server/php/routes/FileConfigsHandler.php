@@ -58,9 +58,25 @@ class FileConfigsHandler
       return;
     }
 
-    $configList = $database->select("config", "*", [
-      "email" => $user['email'],
-      "deletedAt" => null,
+    // $configList = $database->select("config", "*", [
+    //   "email" => $user['email'],
+    //   "deletedAt" => null,
+    // ]);
+
+    $configList = $database->select("config", [
+      "[>]file" => ["fileId"]
+    ], [
+      "config.id",
+      "config.machineId",
+      "config.fileName",
+      "config.path",
+      "config.attribute",
+      "config.createdAt",
+      "file.updateAt"
+    ], [
+      "config.email" => $user['email'],
+      "config.deletedAt" => null,
+      "ORDER" => ["file.updateAt" => "DESC"],
     ]);
 
     echo json_encode([

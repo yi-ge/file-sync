@@ -26,7 +26,7 @@ class FileCheckHandler
     $file = $database->select("file", "sha256", [
       "emailSha1" => $emailSha1,
       "fileId" => $fileId,
-      "ORDER" => "updateAt DESC",
+      "ORDER" => ["updateAt" => "DESC"],
 	    "LIMIT" => 1
     ]);
 
