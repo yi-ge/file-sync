@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"sort"
@@ -341,6 +342,10 @@ func fileUpload(fileId string, fileName string, sha256 string, content string, u
 		"email":     utils.GetSha1Str(data.Email),
 		"machineId": machineId,
 		"fileId":    fileId,
+		"fileName":  fileName,
+		"content":   content,
+		"sha256":    sha256,
+		"updateAt":  strconv.FormatInt(updateAt, 10),
 		"timestamp": strconv.FormatInt(timestamp, 10),
 	}
 
@@ -398,7 +403,7 @@ func fileUpload(fileId string, fileName string, sha256 string, content string, u
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	// fmt.Println(string(body))
+	fmt.Println(string(body))
 
 	if err != nil {
 		return err

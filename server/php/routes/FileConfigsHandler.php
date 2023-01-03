@@ -88,7 +88,7 @@ class FileConfigsHandler
         deletedAt is NULL
       ORDER BY
         config.fileId,
-        config.createdAt DESC,
+        config.createdAt,
         config.id", [
           ":email" => $user['email'],
         ])->fetchAll(PDO::FETCH_ASSOC);

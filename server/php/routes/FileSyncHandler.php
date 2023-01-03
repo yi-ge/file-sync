@@ -6,6 +6,9 @@ class FileSyncHandler
   {
     global $database;
 
+    $datetimeFormat = 'Y-m-d H:i:s';
+    $date = new DateTime();
+
     if (
       !array_key_exists('email', $json) ||
       !array_key_exists('machineId', $json) ||
@@ -84,6 +87,9 @@ class FileSyncHandler
         return;
       }
 
+      $date = new DateTime('now', new DateTimeZone('Asia/Shanghai'));
+      $date->setTimestamp(intval($json['updateAt'] / 1000));
+
       $last_file_id = $database->insert("file", [
         "email" => $user['email'],
         "emailSha1" => $emailSha1,
@@ -92,7 +98,7 @@ class FileSyncHandler
         "content" => $json['content'],
         "sha256" => $json['sha256'],
         "fromMachineId" => $json['machineId'],
-        "updateAt" => $json['updateAt']
+        "updateAt" => $date->format($datetimeFormat)
       ]);
 
       echo json_encode([

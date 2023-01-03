@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -272,18 +273,66 @@ func (p *program) Start(s service.Service) error {
 							fileName        = ""
 							filePath        = ""
 							fileId          = ""
+							isNewFile       = false
+							sha256          = ""
 						)
 
 						if cCtx.Args().Get(1) != "" {
-							fileId = cCtx.Args().Get(0)
+							inputArg := cCtx.Args().Get(0)
 							filePath = cCtx.Args().Get(1)
+
+							configs, err := listConfigs(data)
+							if err != nil {
+								color.Red(err.Error())
+							}
+
+							for i := 0; i < configs.Size(); i++ {
+								theFileId := configs.Get(i, "fileId").ToString()
+								if strings.Contains(theFileId, inputArg) {
+									fileId = theFileId
+									fileName = configs.Get(i, "fileName").ToString()
+									break
+								}
+							}
+
+							if fileId == "" {
+								pattern := "\\d+"
+								result, err := regexp.MatchString(pattern, inputArg)
+								if err != nil {
+									color.Red(err.Error())
+									return err
+								}
+
+								if result {
+									index, err := strconv.Atoi(inputArg)
+									if err != nil {
+										color.Red(err.Error())
+										return err
+									}
+									fileId = configs.Get(index-1, "fileId").ToString()
+									fileName = configs.Get(index-1, "fileName").ToString()
+								} else {
+									err = errors.New("invalid file id")
+									color.Red(err.Error())
+									return err
+								}
+							}
+
+							if fileId == "" {
+								err = errors.New("invalid file id")
+								color.Red(err.Error())
+								return err
+							}
+
+							color.Blue("Action file (" + fileName + " ID:" + fileId[:10] + ").")
 						} else {
 							filePath = cCtx.Args().Get(0)
-							sha256, err := utils.FileSHA256(filePath)
+							sha256, err = utils.FileSHA256(filePath)
 							if err != nil {
 								color.Red(err.Error())
 							}
 							fileId = utils.GetSha1Str(sha256)
+							isNewFile = true
 						}
 
 						if !filepath.IsAbs(filePath) {
@@ -370,6 +419,23 @@ func (p *program) Start(s service.Service) error {
 							return nil
 						}
 						color.Blue("The file (" + fileName + " ID:" + json.Get("fileId").ToString()[:10] + ") was successfully added to the sync item.")
+
+						if isNewFile {
+							fileName = filepath.Base(filePath)
+							f, err := ioutil.ReadFile(filePath)
+							if err != nil {
+								fmt.Println("read fail", err)
+							}
+							fileContent := string(f)
+							timestamp := time.Now().UnixNano() / 1e6
+							// TODO: 添加task
+							err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
+							if err != nil {
+								color.Red(err.Error())
+								return nil
+							}
+						}
+
 						return nil
 					},
 				},
