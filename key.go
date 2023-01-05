@@ -1,11 +1,11 @@
 package main
 
 import (
-	"io/ioutil"
+	"os"
 )
 
 func getPublicKey() ([]byte, error) {
-	data, err := ioutil.ReadFile(workDir + getPathSplitStr() + ".pub.pem")
+	data, err := os.ReadFile(workDir + getPathSplitStr() + ".pub.pem")
 	if err != nil {
 		return nil, err
 	}
@@ -14,7 +14,7 @@ func getPublicKey() ([]byte, error) {
 }
 
 func getPrivateKey() ([]byte, error) {
-	data, err := ioutil.ReadFile(workDir + getPathSplitStr() + ".priv.pem")
+	data, err := os.ReadFile(workDir + getPathSplitStr() + ".priv.pem")
 	if err != nil {
 		return nil, err
 	}

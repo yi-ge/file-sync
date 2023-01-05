@@ -320,7 +320,7 @@ func fileCheck(email string, fileId string, sha256 string) (int, error) {
 
 	status := jsoniter.Get(body, "status").ToInt()
 
-	if status != 0 || status != 1 || status != 2 {
+	if status != 0 && status != 1 && status != 2 {
 		msg := jsoniter.Get(body, "msg").ToString()
 		return -1, errors.New(msg)
 	}

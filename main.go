@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,7 +25,6 @@ var (
 	logger         service.Logger
 	apiURL         = "https://api.yizcore.xyz"
 	password       string
-	data           Data
 	configInstance = config.Instance()
 )
 
@@ -76,12 +74,37 @@ func (p *program) Start(s service.Service) error {
 						return nil
 					},
 				},
-				&cli.StringFlag{
-					Name:  "config",
-					Value: "https://file-sync.openapi.site/",
-					Usage: "HTTP API server URL",
-					Action: func(ctx *cli.Context, url string) error {
-						if url != "" && utils.CheckURL(url) != nil {
+				&cli.BoolFlag{
+					Name:        "config",
+					DefaultText: "https://file-sync.openapi.site/",
+					Usage:       "HTTP API server URL",
+					Required:    false,
+					Action: func(ctx *cli.Context, b bool) error {
+						url := ""
+						if ctx.NArg() > 0 {
+							url = ctx.Args().Get(0)
+						} else {
+							reset := false
+							promptReset := &survey.Confirm{
+								Message: "Are you reset server URL?",
+							}
+							survey.AskOne(promptReset, &reset)
+
+							if reset {
+								err := delConfig()
+								if err != nil {
+									color.Red(err.Error())
+									return nil
+								}
+
+								color.Blue("Reset server URL successfully!")
+								return nil
+							} else {
+								return nil
+							}
+						}
+
+						if utils.CheckURL(url) != nil {
 							color.Red("Invalid URL")
 							return nil
 						}
@@ -422,7 +445,7 @@ func (p *program) Start(s service.Service) error {
 
 						if isNewFile {
 							fileName = filepath.Base(filePath)
-							f, err := ioutil.ReadFile(filePath)
+							f, err := os.ReadFile(filePath)
 							if err != nil {
 								fmt.Println("read fail", err)
 							}
