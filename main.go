@@ -436,6 +436,13 @@ func (p *program) Start(s service.Service) error {
 						// fmt.Println("actionMachineId: ", actionMachineId)
 						// fmt.Println("path: ", filePath)
 
+						publicKey, err := getPublicKey()
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+						fileName = string(utils.RsaEncrypt([]byte(fileName), publicKey))
+
 						json, err := addConfig(fileId, fileName, filePath, actionMachineId, data)
 						if err != nil {
 							color.Red(err.Error())
