@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL^E_NOTICE);
 header('X-Accel-Buffering: no');
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
@@ -29,6 +30,12 @@ function delay($time) {
       }
   }
 }
+
+// if (function_exists('shmop_open')) {
+
+// } else {
+
+// }
 
 // 发送消息
 $data = 0;

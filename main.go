@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -36,7 +37,7 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
-	if !service.Interactive() {
+	if service.Interactive() {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{
@@ -443,9 +444,9 @@ func (p *program) Start(s service.Service) error {
 							color.Red(err.Error())
 							return nil
 						}
-						fileName = string(utils.RsaEncrypt([]byte(fileName), publicKey))
+						fileNameEncrypted := base64.URLEncoding.EncodeToString(utils.RsaEncrypt([]byte(fileName), publicKey))
 
-						json, err := addConfig(fileId, fileName, filePath, actionMachineId, data)
+						json, err := addConfig(fileId, fileNameEncrypted, filePath, actionMachineId, data)
 						if err != nil {
 							color.Red(err.Error())
 							return nil
