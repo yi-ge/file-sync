@@ -14,7 +14,9 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/fatih/color"
+	"github.com/fsnotify/fsnotify"
 	"github.com/kardianos/service"
+	sse "github.com/r3labs/sse/v2"
 	"github.com/urfave/cli/v3"
 	"github.com/yi-ge/file-sync/config"
 	"github.com/yi-ge/file-sync/utils"
@@ -34,7 +36,7 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
-	if service.Interactive() {
+	if !service.Interactive() {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{
@@ -729,13 +731,56 @@ func (p *program) Start(s service.Service) error {
 				// TODO: 检查config是否已被从其他设备移除
 				// TODO: Check if config has been removed from other devices
 				fmt.Println(configs.Keys())
+
+				// Create new watcher.
+				watcher, err := fsnotify.NewWatcher()
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer watcher.Close()
+
+				// Start listening for events.
+				go func() {
+					for {
+						select {
+						case event, ok := <-watcher.Events:
+							if !ok {
+								return
+							}
+							log.Println("event:", event)
+							if event.Has(fsnotify.Write) {
+								log.Println("modified file:", event.Name)
+							}
+						case err, ok := <-watcher.Errors:
+							if !ok {
+								return
+							}
+							log.Println("error:", err)
+						}
+					}
+				}()
+
+				// Add a path.
+				// err = watcher.Add("/tmp")
+				// if err != nil {
+				// log.Fatal(err)
+				// }
+
+				go func() {
+					client := sse.NewClient(apiURL + "/events.php")
+
+					client.Subscribe("messages", func(msg *sse.Event) {
+						// Got some data!
+						fmt.Println(string(msg.Data))
+					})
+				}()
 			}
 		}
 	}
 	p.exit = make(chan struct{})
 
 	// Start should not block. Do the actual work async.
-	go p.run()
+	// go p.run()
 	return nil
 }
 
