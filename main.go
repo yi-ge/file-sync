@@ -37,7 +37,7 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
-	if service.Interactive() {
+	if !service.Interactive() {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{
@@ -727,11 +727,11 @@ func (p *program) Start(s service.Service) error {
 		data, err := getData()
 
 		if err == nil {
-			configs, err := listConfigs(data)
+			configs, err := listConfigs(data) // TODO: 网络异常后重新检查
 			if err == nil {
 				// TODO: 检查config是否已被从其他设备移除
 				// TODO: Check if config has been removed from other devices
-				fmt.Println(configs.Keys())
+				fmt.Println(configs.ToString())
 
 				// Create new watcher.
 				watcher, err := fsnotify.NewWatcher()
@@ -761,21 +761,40 @@ func (p *program) Start(s service.Service) error {
 					}
 				}()
 
-				// Add a path.
-				// err = watcher.Add("/tmp")
-				// if err != nil {
-				// log.Fatal(err)
-				// }
+				for i := 0; i < configs.Size(); i++ {
+					machineId := configs.Get(i, "machineId").ToString()
+					if machineId == data.MachineId {
+						actionPath := configs.Get(i, "path").ToString()
+						// Add a path.
+						err = watcher.Add(actionPath)
+						if err != nil {
+							logger.Error(err)
+						}
+					}
+				}
 
-				go func() {
-					client := sse.NewClient(apiURL + "/events.php")
-
-					client.Subscribe("messages", func(msg *sse.Event) {
-						// Got some data!
-						fmt.Println(string(msg.Data))
-					})
-				}()
+			} else {
+				logger.Error(err)
 			}
+
+			go func() {
+				client := sse.NewClient(apiURL + "/events.php")
+
+				err := client.Subscribe("messages", func(msg *sse.Event) {
+					// Got some data!
+					fmt.Println(string(msg.Data))
+				})
+
+				if err != nil {
+					color.Red(err.Error())
+				}
+
+				client.OnDisconnect(func(c *sse.Client) {
+					color.Red("Disconnected!")
+				})
+			}()
+		} else {
+			logger.Error(err)
 		}
 	}
 	p.exit = make(chan struct{})

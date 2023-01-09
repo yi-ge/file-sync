@@ -11,7 +11,7 @@
 
 ⚠️⛔️ 此程序尚在开发！！！ ⛔️ ⚠️
 
-自动同步单个文件。为单个用户同步 `.env` 或 `config` 文件。
+自动同步单个文件。为单个用户安全的同步 `.env` 或 `config` 文件。
 
 `file-sync`是跨平台的，非常适合在你的多个设备中自动同步`.env`、`.bashrc`、`.profile`、`.zshrc`、`.ssh/config`之类的文件。
 
@@ -241,7 +241,7 @@ location / {
 
 ## 服务器端API
 
-`file-sync`程序目前使用`HTTP API`完成同步交互。目前~~已完成~~PHP版本的服务器端API。
+`file-sync`程序目前使用`HTTP API`完成同步交互，服务器向客户端的推送使用Server-Sent Events（SSE）技术实现。目前~~已完成~~PHP版本的服务器端API。
 
 <details><summary>CLICK ME</summary>
 <p>

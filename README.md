@@ -11,7 +11,7 @@
 
 ⚠️⛔️ This program is not yet under development !!! ⛔️ ⚠️
 
-Automatically sync single file. Sync `.env` file or `.config` file for single user.
+Automatically sync single file. Securely synchronize `.env` file or `.config` file for single user.
 
 The design principle of `file-sync`: The server is untrustworthy, the client (local) is trusted.
 
@@ -239,7 +239,7 @@ location / {
 
 ## Server-side API
 
-The `file-sync` program currently uses the `HTTP API` to complete synchronization interactions. Currently ~~ has completed ~~ the PHP version of the server-side API.
+The `file-sync` program currently uses the `HTTP API` to complete synchronization interactions, Server-to-client push is implemented using Server-Sent Events (SSE). Currently ~~ has completed ~~ the PHP version of the server-side API.
 
 <details><summary>CLICK ME</summary>
 <p>
