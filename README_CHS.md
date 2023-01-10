@@ -178,7 +178,9 @@ docker run xx:file-sync-server
 
 ### PHP
 
-require PHP >= v5.4 （64位）
+require PHP >= v5.4 （64位）， 建议开启`shmop`拓展以获得更好的体验。
+
+注意，千万不要把PHP代码目录下的`.env`文件上传到服务器/虚拟主机，以免泄露数据库配置信息。
 
 #### Server Configuration
 
@@ -455,23 +457,26 @@ Return：
 
 ### 进入开发调试环境
 
-需要手工设置环境变量`GO_ENV`为`development`。
+在根目录`.env`环境变量配置文件中，`GO_ENV`开发环境为`development`，生产环境为`production`。
 
-例如`Windows`平台中`PowerShell`环境下：
+#### Windows
 
-安装`xampp`，vscode配置：`"php.debug.executablePath": "C:\\xampp\\php\\php.exe"`。
+安装`xampp`并配置`Zend Debugger`，修改`httpd.conf`文件中`DocumentRoot`与`Directory`为`server/php`文件夹所在的绝对路径。
 
-```bash
-$Env:GO_ENV = 'development'
-```
+启动Apache、MySQL，进入`http://localhost/phpmyadmin`创建名为`file_sync`的数据库。
 
-例如`*unix`：
+修改根目录下的`.env.example`文件，以及`server/php/.htaccess.example`文件中的环境变量。
 
-```bash
-export GO_ENV="development"
-```
+**注意：** 在`Windows`平台，不支持`PHP_CLI_SERVER_WORKERS`环境变量，因此在`Windows`平台的开发调试请使用推荐的最新版`xampp`或`LAMP`、`LNMP`配置。VSCode的launch配置不适用于`Windows`平台，不要使用F5启动`Windows`下的调试环境。
 
-注意：在`*unix`环境下，请设置`PHP_CLI_SERVER_WORKERS`环境变量为大于1的数值以便测试多进程环境下PHP的工作状态（依赖PHP CLI version >= 7.4.0），由于该环境变量不支持`Windows`平台，因此在`Windows`平台的开发调试请使用`xampp`的配置（即VSCode的launch配置不适用于`Windows`开发）。
+### *unix
+
+安装PHP 5.4+以及MySQL 5.4+，启用`shmop`拓展，配置`Zend Debugger`，创建名为`file_sync`的数据库。
+
+详细环境变量配置参考根目录下的`.env.example`文件，以及`server/php/.env.example`文件。
+
+请设置`PHP_CLI_SERVER_WORKERS`环境变量为大于`1`的数值以便测试多线程环境下PHP的工作状态（依赖PHP CLI version >= 7.4.0，如果使用低版本PHP进行开发，请配置`LNMP`或`LAMP`环境）。
+
 
 </p>
 </details>

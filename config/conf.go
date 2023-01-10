@@ -1,7 +1,5 @@
 package config
 
-import "os"
-
 // Config - Export Base Config struct
 type Config struct {
 	name    string
@@ -16,7 +14,6 @@ type SystemConfig struct {
 }
 
 var cfg *Config
-var isDev = os.Getenv("GO_ENV") == "development"
 
 // SConfig - Export System Config
 var SConfig SystemConfig

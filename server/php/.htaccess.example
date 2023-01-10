@@ -1,0 +1,5 @@
+SetEnv MYSQL_HOST "localhost"
+SetEnv MYSQL_NAME "file_sync"
+SetEnv MYSQL_PORT "3306"
+SetEnv MYSQL_USER "root"
+SetEnv MYSQL_PASS ""

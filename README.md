@@ -176,7 +176,9 @@ docker run xx:file-sync-server
 
 ### PHP
 
-require PHP >= v5.4 (64bit)
+require PHP >= v5.4 (64bit), It is recommended to turn on `shmop` expansion for a better experience.
+
+Note: Never upload the `.env` file from the PHP code directory to the `Server`/`Virtual Host` to avoid leaking the database configuration information.
 
 #### Server Configuration
 
@@ -256,21 +258,26 @@ Due to frequent changes, currently listed in the Chinese README： [简体中文
 
 ### Start the development and debugging environment
 
-You need to set the environment variable `GO_ENV` to `development` manually.
+In the root file directory has `.env` environment variable configuration file, `GO_ENV` development environment value is `development` and production environment value is `production`.
 
-For example, in the `PowerShell` environment in the `Windows` platform:
+#### Windows
 
-```bash
-$Env:GO_ENV = 'development'
-```
+Install `xampp` and configure `Zend Debugger`, change `DocumentRoot` and `Directory` in `httpd.conf` file to the absolute path where the `server/php` folder is located.
 
-For example, `*unix`:
+Start Apache, MySQL, and go to `http://localhost/phpmyadmin` to create a database named `file_sync`.
 
-```bash
-export GO_ENV="development"
-```
+Modify the `.env.example` file in the root directory, and the environment variables in the `server/php/.htaccess.example` file.
 
-Note: In `*unix` environment, please set `PHP_CLI_SERVER_WORKERS` environment variable to a value greater than 1 in order to test the working state of PHP in multi-process environment (PHP CLI version >= 7.4.0 is required), because this environment variable does not support `Windows` platform, so in `Windows` platform, please use the `xampp` configuration (i.e. VSCode's launch configuration is not applicable to `Windows` development).
+**Note:** In `Windows` platform, `PHP_CLI_SERVER_WORKERS` environment variable is not supported, so please use the recommended latest version of `xampp` or `LAMP`, `LNMP` configuration for development and debugging in `Windows` platform. VSCode launch configuration is not applicable to ` Windows` platform, do not use F5 to start the debugging environment.
+
+### *unix
+
+Install PHP 5.4+ and MySQL 5.4+, enable `shmop` extension, configure `Zend Debugger`, and create a database named `file_sync`.
+
+Refer to the `.env.example` file in the root directory and the `server/php/.env.example` file for detailed environment variable configuration.
+
+Please set the `PHP_CLI_SERVER_WORKERS` environment variable to a value greater than `1` in order to test the working state of PHP in a Multi-threaded environment (relying on PHP CLI version >= 7.4.0, if you are developing with a lower version of PHP, please configure the `LNMP` or `LAMP` environment).
+
 
 </p>
 </details>

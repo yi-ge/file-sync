@@ -15,6 +15,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 	"github.com/kardianos/service"
 	sse "github.com/r3labs/sse/v2"
 	"github.com/urfave/cli/v3"
@@ -23,7 +24,7 @@ import (
 )
 
 var (
-	isDev          = os.Getenv("GO_ENV") == "development"
+	isDev          = false
 	logger         service.Logger
 	apiURL         = "https://api.yizcore.xyz"
 	password       string
@@ -812,15 +813,21 @@ func (p *program) Stop(s service.Service) error {
 func main() {
 	// svcFlag := flag.String("service", "", "Control the system service.")
 	// flag.Parse()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	err := fsInit()
+	isDev = os.Getenv("GO_ENV") == "development"
+
+	err = fsInit()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if isDev {
 		log.Printf("Currently in development mode!")
-		apiURL = "http://localhost:8000"
+		apiURL = os.Getenv("DEV_API_SERVER_URL")
 	} else {
 		conf := getConfig()
 		if conf != "" {

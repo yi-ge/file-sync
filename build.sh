@@ -11,6 +11,8 @@ const (
 )
 " >config/auto_config.go
 
+sed -i 's/isDev = os\.Getenv\("GO_ENV"\) == "development"/isDev = false/' main.go
+
 if ! [ -x "$(command -v upx)" ]; then
   echo 'Error: upx is not installed.'
   apt update && apt install upx -y # osslsigncode
@@ -82,3 +84,5 @@ else
   env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/file-sync-windows-amd64.exe server-monitor-agent
   upx ./bin/file-sync-windows-amd64.exe
 fi
+
+sed -i 's/isDev = false/isDev = os\.Getenv\("GO_ENV"\) == "development"/' main.go

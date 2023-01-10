@@ -18,3 +18,4 @@
 
 # Dotenv
 .env
+server/php/.htaccess
