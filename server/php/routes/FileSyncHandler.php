@@ -100,9 +100,17 @@ class FileSyncHandler
             ]);
 
             if (function_exists('shmop_open')) {
-                $shmid = shmop_open(66, "c", 0755, 320);
-                shmop_read($shmid, 0, 320);
-                shmop_write($shmid, $json['fileId'], 0);
+                $memory = new SimpleBlock(66);
+                $data = [];
+                if ($memory->exists(66)) {
+                    $tmp = $memory->read();
+                    $data = json_decode($tmp, true);
+                }
+                array_unshift($data, $json['fileId']);
+                while (count($data) > 10) {
+                    array_pop($data);
+                }
+                $memory->write(json_encode($data));
             }
 
             echo json_encode([

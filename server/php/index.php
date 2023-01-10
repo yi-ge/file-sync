@@ -2,6 +2,10 @@
 require_once 'config.php';
 require_once 'libs/Toro.php';
 
+if (function_exists('shmop_open')) {
+    require_once 'libs/SimpleBlock.php';
+}
+
 // routes
 require_once 'routes/HomeHandler.php';
 require_once 'routes/DeviceAddHandler.php';

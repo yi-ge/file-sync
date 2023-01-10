@@ -1,4 +1,8 @@
 <?php
+if (function_exists('shmop_open')) {
+    require_once 'libs/SimpleBlock.php';
+}
+
 error_reporting(E_ALL ^ E_NOTICE);
 header('X-Accel-Buffering: no');
 header('Content-Type: text/event-stream');
@@ -45,14 +49,18 @@ if (!empty($timestamp)) {
 $lastData = "";
 
 if (function_exists('shmop_open')) {
-    $shmid = shmop_open(66, "w", 0, 0);
     $time = 60;
     while (true) {
-        $data = shmop_read($shmid, 0, 40);
+        $memory = new SimpleBlock(66);
+        $data = "";
+        if ($memory->exists(66)) {
+            $data = $memory->read();
+        }
         if ($data && $data != $lastData) {
             $lastData = $data;
+            $data = json_decode($data, true);
             $c = "event: message" . PHP_EOL; // Define Event
-            $c .= "data: " . $data . PHP_EOL; // Push content
+            $c .= "data: " . join(",", $data) . PHP_EOL; // Push content
             echo $c . PHP_EOL;
         } else {
             if ($time > 59) {

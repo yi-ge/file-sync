@@ -85,7 +85,7 @@ class FileConfigHandler
             if ($configCheck && sizeof($configCheck) >= 1) {
                 echo json_encode([
                     "status" => -5,
-                    "msg" => "This machine is bound to this file sync item.",
+                    "msg" => "This machine has been synchronized with the project of binding this file.",
                     "result" => null,
                 ]);
                 return;
