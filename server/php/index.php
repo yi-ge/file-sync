@@ -13,15 +13,15 @@ require_once 'routes/FileCheckHandler.php';
 require_once 'routes/FileSyncHandler.php';
 
 Toro::serve(
-  array(
-    "/" => "HomeHandler",
-    "/device/add" => "DeviceAddHandler",
-    "/device/list" => "DeviceListHandler",
-    "/device/remove" => "DeviceRemoveHandler",
-    "/file/configs" => "FileConfigsHandler",
-    "/file/config" => "FileConfigHandler",
-    "/file/check" => "FileCheckHandler",
-    "/file/sync" => "FileSyncHandler",
-  ),
-  $server_options
+    array(
+        "/" => "HomeHandler",
+        "/device/add" => "DeviceAddHandler",
+        "/device/list" => "DeviceListHandler",
+        "/device/remove" => "DeviceRemoveHandler",
+        "/file/configs" => "FileConfigsHandler",
+        "/file/config" => "FileConfigHandler",
+        "/file/check" => "FileCheckHandler",
+        "/file/sync" => "FileSyncHandler",
+    ),
+    $server_options
 );
