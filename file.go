@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"sort"
@@ -267,7 +266,7 @@ func listConfigs(data Data) (jsoniter.Any, error) {
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	// fmt.Println(string(body))
 
 	if err != nil {
 		return nil, err

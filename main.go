@@ -15,7 +15,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/fatih/color"
-	"github.com/fsnotify/fsnotify"
 	"github.com/kardianos/service"
 	sse "github.com/r3labs/sse/v2"
 	"github.com/urfave/cli/v3"
@@ -37,7 +36,7 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
-	if service.Interactive() {
+	if !service.Interactive() {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{
@@ -99,6 +98,7 @@ func (p *program) Start(s service.Service) error {
 									color.Red(err.Error())
 									return nil
 								}
+								delCache()
 
 								color.Blue("Reset server URL successfully!")
 								return nil
@@ -225,6 +225,7 @@ func (p *program) Start(s service.Service) error {
 
 							if res != "" {
 								color.Green("Remove device successfully!")
+								delCache()
 							} else {
 								color.Red("Remove device failure. Unknown error.")
 							}
@@ -452,6 +453,7 @@ func (p *program) Start(s service.Service) error {
 							return nil
 						}
 						color.Blue("The file (" + fileName + " ID:" + json.Get("fileId").ToString()[:10] + ") was successfully added to the sync item.")
+						delCache()
 
 						if isNewFile {
 							fileName = filepath.Base(filePath)
@@ -488,9 +490,19 @@ func (p *program) Start(s service.Service) error {
 							color.Red(err.Error())
 						}
 
+						isCache := false
 						configs, err := listConfigs(data)
 						if err != nil {
-							color.Red(err.Error())
+							configsCache, cacheErr := getCache()
+							if cacheErr != nil {
+								color.Red(err.Error())
+								return err
+							}
+							configs = configsCache
+							isCache = true
+							color.Red("Request server failed, cached data is shown here: ")
+						} else {
+							setCache(configs)
 						}
 						displayRowSet := mapset.NewSet("id", "machineId", "attribute", "createdAt")
 						hiddenLongPath := true
@@ -501,6 +513,9 @@ func (p *program) Start(s service.Service) error {
 
 						if configs != nil && configs.Size() > 0 {
 							printTable(configs, displayRowSet, true, hiddenLongPath)
+							if isCache {
+								color.Red("Request server failed, above is cached data!")
+							}
 						} else {
 							color.Red("No file config.")
 						}
@@ -654,6 +669,7 @@ func (p *program) Start(s service.Service) error {
 						}
 
 						color.Green("Remove config successfully!")
+						delCache()
 
 						return nil
 					},
@@ -724,96 +740,50 @@ func (p *program) Start(s service.Service) error {
 		os.Exit(0)
 	} else {
 		logger.Info("Running under service manager.")
-		data, err := getData()
-
-		if err == nil {
-			// TODO: 网络异常后重新检查
-			// TODO: Recheck after network anomaly
-			configs, err := listConfigs(data)
-			if err == nil {
-				// TODO: 检查config是否已被从其他设备移除
-				// TODO: Check if config has been removed from other devices
-				fmt.Println(configs.ToString())
-
-				// Create new watcher.
-				watcher, err := fsnotify.NewWatcher()
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer watcher.Close()
-
-				// Start listening for events.
-				go func() {
-					for {
-						select {
-						case event, ok := <-watcher.Events:
-							if !ok {
-								return
-							}
-							log.Println("event:", event)
-							if event.Has(fsnotify.Write) {
-								log.Println("modified file:", event.Name)
-							}
-						case err, ok := <-watcher.Errors:
-							if !ok {
-								return
-							}
-							log.Println("error:", err)
-						}
-					}
-				}()
-
-				for i := 0; i < configs.Size(); i++ {
-					machineId := configs.Get(i, "machineId").ToString()
-					if machineId == data.MachineId {
-						actionPath := configs.Get(i, "path").ToString()
-						// Add a path.
-						err = watcher.Add(actionPath)
-						if err != nil {
-							logger.Error(err)
-						}
-					}
-				}
-
-			} else {
-				logger.Error(err)
-			}
-
-			go func() {
-				timestamp := time.Now().UnixNano() / 1e6
-				eventURL := apiURL + "/events.php?email=" + utils.GetSha1Str(data.Email) + "&machineId=" + data.MachineId + "&timestamp=" + strconv.FormatInt(timestamp, 10)
-				fmt.Println(eventURL)
-				client := sse.NewClient(eventURL)
-
-				err := client.Subscribe("messages", func(msg *sse.Event) {
-					if string(msg.Event) == "message" {
-						fileIds := strings.Split(string(msg.Data), ",")
-						go job(fileIds)
-					}
-				})
-
-				if err != nil {
-					color.Red(err.Error())
-				}
-
-				client.OnDisconnect(func(c *sse.Client) {
-					color.Red("Disconnected!")
-				})
-			}()
-		} else {
-			logger.Error(err)
-		}
+		// Start should not block. Do the actual work async.
+		go p.run()
 	}
 	p.exit = make(chan struct{})
 
-	// Start should not block. Do the actual work async.
-	// go p.run()
 	return nil
 }
 
 func (p *program) run() error {
+	data, err := getData()
+
+	if err == nil {
+		go watchFiles(data)
+
+		go func() {
+			timestamp := time.Now().UnixNano() / 1e6
+			emailSha1 := utils.GetSha1Str(data.Email)
+			eventURL := apiURL + "/events.php?email=" + emailSha1 + "&machineId=" + data.MachineId + "&timestamp=" + strconv.FormatInt(timestamp, 10)
+			fmt.Println(eventURL)
+			client := sse.NewClient(eventURL)
+
+			err := client.Subscribe("messages", func(msg *sse.Event) {
+				if string(msg.Event) == "file" {
+					fileIds := strings.Split(string(msg.Data), ",")
+					go job(fileIds, emailSha1, data)
+				} else if string(msg.Event) == "config" {
+					go watchFiles(data)
+				}
+			})
+
+			if err != nil {
+				color.Red(err.Error())
+			}
+
+			client.OnDisconnect(func(c *sse.Client) {
+				color.Red("Disconnected!")
+			})
+		}()
+	} else {
+		logger.Error(err)
+	}
+
 	logger.Infof("I'm running %v.", service.Platform())
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(time.Hour)
 	for {
 		select {
 		case tm := <-ticker.C:

@@ -59,7 +59,7 @@ if (function_exists('shmop_open')) {
         if ($data && $data != $lastData) {
             $lastData = $data;
             $data = json_decode($data, true);
-            $c = "event: message" . PHP_EOL; // Define Event
+            $c = "event: file" . PHP_EOL; // Define Event
             $c .= "data: " . join(",", $data) . PHP_EOL; // Push content
             echo $c . PHP_EOL;
         } else {
@@ -91,7 +91,7 @@ if (function_exists('shmop_open')) {
         $date = new DateTime('now', new DateTimeZone('Asia/Shanghai'));
 
         if ($files && sizeof($files) >= 1) {
-            $c = "event: message" . PHP_EOL; // Define Event
+            $c = "event: file" . PHP_EOL; // Define Event
             $c .= "data: " . join(",", $files) . PHP_EOL; // Push content
             echo $c . PHP_EOL;
         } else {
