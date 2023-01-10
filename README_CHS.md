@@ -465,7 +465,7 @@ Return：
 
 启动Apache、MySQL，进入`http://localhost/phpmyadmin`创建名为`file_sync`的数据库。
 
-修改根目录下的`.env.example`文件，以及`server/php/.htaccess.example`文件中的环境变量。
+修改根目录下的`.env.example`文件，以及`server/php/.htaccess.example`文件中的环境变量。根据上文中`使用自托管服务器`的内容配置`.htaccess`文件。
 
 **注意：** 在`Windows`平台，不支持`PHP_CLI_SERVER_WORKERS`环境变量，因此在`Windows`平台的开发调试请使用推荐的最新版`xampp`或`LAMP`、`LNMP`配置。VSCode的launch配置不适用于`Windows`平台，不要使用F5启动`Windows`下的调试环境。
 

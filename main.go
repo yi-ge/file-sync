@@ -37,7 +37,7 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
-	if !service.Interactive() {
+	if service.Interactive() {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{

@@ -160,7 +160,7 @@ Hint: All `<machine id>`, `<file id>` can be abbreviated.
 
 A: This project is designed to synchronize a single configuration file, and you can synchronize multiple files by synchronizing the configuration entries of other file synchronization tools via `file-sync`.
 
-## Use of self-hosted servers
+## Use self-hosted server
 
 You can choose to deploy it in your own server with the Docker or build your own PHP runtime.
 
@@ -274,7 +274,7 @@ Modify the `.env.example` file in the root directory, and the environment variab
 
 Install PHP 5.4+ and MySQL 5.4+, enable `shmop` extension, configure `Zend Debugger`, and create a database named `file_sync`.
 
-Refer to the `.env.example` file in the root directory and the `server/php/.env.example` file for detailed environment variable configuration.
+Refer to the `.env.example` file in the root directory and the `server/php/.env.example` file for detailed environment variable configuration. Configure the `.htaccess` file according to the `Use self-hosted server` above.
 
 Please set the `PHP_CLI_SERVER_WORKERS` environment variable to a value greater than `1` in order to test the working state of PHP in a Multi-threaded environment (relying on PHP CLI version >= 7.4.0, if you are developing with a lower version of PHP, please configure the `LNMP` or `LAMP` environment).
 
