@@ -471,6 +471,8 @@ $Env:GO_ENV = 'development'
 export GO_ENV="development"
 ```
 
+注意：在`*unix`环境下，请设置`PHP_CLI_SERVER_WORKERS`环境变量为大于1的数值以便测试多进程环境下PHP的工作状态（依赖PHP CLI version >= 7.4.0），由于该环境变量不支持`Windows`平台，因此在`Windows`平台的开发调试请使用`xampp`的配置（即VSCode的launch配置不适用于`Windows`开发）。
+
 </p>
 </details>
 

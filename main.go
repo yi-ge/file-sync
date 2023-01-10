@@ -37,7 +37,7 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
-	if !service.Interactive() {
+	if service.Interactive() {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{
@@ -727,7 +727,9 @@ func (p *program) Start(s service.Service) error {
 		data, err := getData()
 
 		if err == nil {
-			configs, err := listConfigs(data) // TODO: 网络异常后重新检查
+			// TODO: 网络异常后重新检查
+			// TODO: Recheck after network anomaly
+			configs, err := listConfigs(data)
 			if err == nil {
 				// TODO: 检查config是否已被从其他设备移除
 				// TODO: Check if config has been removed from other devices
@@ -778,11 +780,16 @@ func (p *program) Start(s service.Service) error {
 			}
 
 			go func() {
-				client := sse.NewClient(apiURL + "/events.php")
+				timestamp := time.Now().UnixNano() / 1e6
+				eventURL := apiURL + "/events.php?email=" + utils.GetSha1Str(data.Email) + "&machineId=" + data.MachineId + "&timestamp=" + strconv.FormatInt(timestamp, 10)
+				fmt.Println(eventURL)
+				client := sse.NewClient(eventURL)
 
 				err := client.Subscribe("messages", func(msg *sse.Event) {
-					// Got some data!
-					fmt.Println(string(msg.Data))
+					if string(msg.Event) == "message" {
+						fileIds := strings.Split(string(msg.Data), ",")
+						go job(fileIds)
+					}
 				})
 
 				if err != nil {

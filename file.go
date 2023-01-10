@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"sort"
@@ -403,7 +402,7 @@ func fileUpload(fileId string, fileName string, sha256 string, content string, u
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	// fmt.Println(string(body))
 
 	if err != nil {
 		return err

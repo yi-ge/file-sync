@@ -270,6 +270,8 @@ For example, `*unix`:
 export GO_ENV="development"
 ```
 
+Note: In `*unix` environment, please set `PHP_CLI_SERVER_WORKERS` environment variable to a value greater than 1 in order to test the working state of PHP in multi-process environment (PHP CLI version >= 7.4.0 is required), because this environment variable does not support `Windows` platform, so in `Windows` platform, please use the `xampp` configuration (i.e. VSCode's launch configuration is not applicable to `Windows` development).
+
 </p>
 </details>
 

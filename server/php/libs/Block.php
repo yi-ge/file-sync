@@ -1,8 +1,8 @@
 <?php
 // Fork from: https://github.com/klaussilveira/SimpleSHM
-namespace Simple\SHM;
+// namespace Simple\SHM;
 
-class Block
+class SimpleBlock
 {
     /**
      * Holds the system id for the shared memory block

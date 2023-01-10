@@ -1,4 +1,8 @@
 <?php
+if (function_exists('shmop_open')) {
+  require_once 'libs/Block.php';
+  // use Simple\SHM\Block;
+}
 
 class FileSyncHandler
 {
@@ -7,7 +11,6 @@ class FileSyncHandler
     global $database;
 
     $datetimeFormat = 'Y-m-d H:i:s';
-    $date = new DateTime();
 
     if (
       !array_key_exists('email', $json) ||
@@ -100,6 +103,11 @@ class FileSyncHandler
         "fromMachineId" => $json['machineId'],
         "updateAt" => $date->format($datetimeFormat)
       ]);
+
+      if (function_exists('shmop_open')) {
+        $new = new SimpleBlock(66);
+        $new->write($json['fileId']);
+      }
 
       echo json_encode([
         "status" => 1,
