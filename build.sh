@@ -11,7 +11,7 @@ const (
 )
 " >config/auto_config.go
 
-sed -i 's/isDev = os\.Getenv\("GO_ENV"\) == "development"/isDev = false/' main.go
+# sed -i 's/isDev\s=\sos\.Getenv\("GO_ENV"\)\s==\s"development"/isDev\s=\sfalse/g' main.go
 
 if ! [ -x "$(command -v upx)" ]; then
   echo 'Error: upx is not installed.'
@@ -85,4 +85,4 @@ else
   upx ./bin/file-sync-windows-amd64.exe
 fi
 
-sed -i 's/isDev = false/isDev = os\.Getenv\("GO_ENV"\) == "development"/' main.go
+sed -i 's/isDev\s=\sfalse/isDev\s=\sos\.Getenv\("GO_ENV"\)\s==\s"development"/g' main.go
