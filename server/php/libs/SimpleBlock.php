@@ -79,6 +79,27 @@ class SimpleBlock
     }
 
     /**
+     * Get the length of shmop data
+     * @return number length
+     */
+    public function detect_mb_strlen($data) {
+      if (function_exists('mb_strlen')) {
+        return mb_strlen($data, 'UTF-8');
+      } else { // Note: This method is not strictly implemented, it works here because the data is encrypted and encoded.
+        $step = 2; // utf-8
+        $count = 0;
+        $strlen = strlen($data);
+        for($i=0;$i<$strlen;$i++){
+            $count++;
+            if(ord($data[$i])>=128){
+                $i=$i+$step;
+            }
+        }
+        return $count;
+      }
+    }
+
+    /**
      * Writes on a shared memory block
      *
      * First we check for the block existance, and if it doesn't, we'll create it. Now, if the
@@ -91,7 +112,7 @@ class SimpleBlock
      */
     public function write($data)
     {
-        $size = mb_strlen($data, 'UTF-8');
+        $size = $this->detect_mb_strlen($data);
 
         if ($this->exists($this->id)) {
             shmop_delete($this->shmid);
