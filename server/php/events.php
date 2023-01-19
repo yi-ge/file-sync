@@ -48,6 +48,10 @@ if (!empty($timestamp)) {
 }
 $lastData = "";
 
+$connectedMsg = "event: connected" . PHP_EOL; // Define Event
+$connectedMsg .= "data: 1" . PHP_EOL; // Push content
+echo $connectedMsg . PHP_EOL;
+
 if (function_exists('shmop_open')) {
     $time = 60;
     while (true) {

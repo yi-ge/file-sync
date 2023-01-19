@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -13,16 +12,17 @@ func watchFiles(data Data) {
 	// TODO: Recheck after network anomaly
 	configs, err := listConfigs(data)
 	if err == nil {
-		// TODO: 检查config是否已被从其他设备移除
-		// TODO: Check if config has been removed from other devices
-		fmt.Println(configs.ToString())
+		if watcher != nil {
+			watcher.Close()
+			watcher = nil
+		}
 
 		// Create new watcher.
-		watcher, err := fsnotify.NewWatcher()
+		watcher, err = fsnotify.NewWatcher()
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer watcher.Close()
+		// defer watcher.Close()
 
 		// Start listening for events.
 		go func() {
@@ -57,6 +57,7 @@ func watchFiles(data Data) {
 			}
 		}
 
+		logger.Infof("Watcher is Working.")
 	} else {
 		logger.Error(err)
 		logger.Info("retry watcher")

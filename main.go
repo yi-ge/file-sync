@@ -15,6 +15,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/fatih/color"
+	"github.com/fsnotify/fsnotify"
 	"github.com/joho/godotenv"
 	"github.com/kardianos/service"
 	sse "github.com/r3labs/sse/v2"
@@ -29,6 +30,7 @@ var (
 	apiURL         = "https://api.yizcore.xyz"
 	password       string
 	configInstance = config.Instance()
+	watcher        *fsnotify.Watcher
 )
 
 // Define Start and Stop methods.
@@ -37,7 +39,7 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
-	if service.Interactive() {
+	if !service.Interactive() {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{
@@ -754,31 +756,44 @@ func (p *program) run() error {
 	data, err := getData()
 
 	if err == nil {
-		go watchFiles(data)
-
 		go func() {
 			timestamp := time.Now().UnixNano() / 1e6
 			emailSha1 := utils.GetSha1Str(data.Email)
 			eventURL := apiURL + "/events.php?email=" + emailSha1 + "&machineId=" + data.MachineId + "&timestamp=" + strconv.FormatInt(timestamp, 10)
-			fmt.Println(eventURL)
+			// fmt.Println(eventURL)
 			client := sse.NewClient(eventURL)
 
+			client.OnConnect(func(c *sse.Client) {
+				logger.Infof("Connected!")
+				// go watchFiles(data)
+			})
+
+			client.OnDisconnect(func(c *sse.Client) {
+				logger.Errorf("Disconnected!")
+				if watcher != nil {
+					watcher.Close()
+					watcher = nil
+				}
+			})
+
+			logger.Infof("Registered Server Events!")
+
 			err := client.Subscribe("messages", func(msg *sse.Event) {
-				if string(msg.Event) == "file" {
+				if string(msg.Event) == "connected" {
+					logger.Infof("Connected Event.")
+					go watchFiles(data)
+				} else if string(msg.Event) == "file" {
 					fileIds := strings.Split(string(msg.Data), ",")
 					go job(fileIds, emailSha1, data)
 				} else if string(msg.Event) == "config" {
+					// Check if config has been removed from other devices
 					go watchFiles(data)
 				}
 			})
 
 			if err != nil {
-				color.Red(err.Error())
+				logger.Errorf(err.Error())
 			}
-
-			client.OnDisconnect(func(c *sse.Client) {
-				color.Red("Disconnected!")
-			})
 		}()
 	} else {
 		logger.Error(err)
