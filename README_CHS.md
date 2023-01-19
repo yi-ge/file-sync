@@ -178,7 +178,9 @@ docker run xx:file-sync-server
 
 ### PHP
 
-require PHP >= v5.4 （64位）， 建议开启`shmop`拓展以获得更好的体验。
+require PHP >= v5.4 （64位）， 建议开启`shmop`和`mbstring`拓展以获得更好的体验。
+
+上传`server/php`目录下的文件到php根目录(不包括`test`文件夹)。
 
 注意，千万不要把PHP代码目录下的`.env`文件上传到服务器/虚拟主机，以免泄露数据库配置信息。
 
@@ -476,7 +478,6 @@ Return：
 详细环境变量配置参考根目录下的`.env.example`文件，以及`server/php/.env.example`文件。
 
 请设置`PHP_CLI_SERVER_WORKERS`环境变量为大于`1`的数值以便测试多线程环境下PHP的工作状态（依赖PHP CLI version >= 7.4.0，如果使用低版本PHP进行开发，请配置`LNMP`或`LAMP`环境）。
-
 
 </p>
 </details>

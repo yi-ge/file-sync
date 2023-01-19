@@ -464,12 +464,13 @@ func (p *program) Start(s service.Service) error {
 							}
 							fileContent := string(f)
 							timestamp := time.Now().UnixNano() / 1e6
-							// TODO: 添加task
+							// TODO: 文件加密
 							err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
 							if err != nil {
 								color.Red(err.Error())
 								return nil
 							}
+							// TODO: 添加文件到watch
 						}
 
 						return nil

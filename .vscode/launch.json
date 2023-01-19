@@ -11,6 +11,8 @@
       "runtimeArgs": [
         "-S",
         "localhost:8000",
+        "-d",
+        "display_errors=on",
         "-t",
         "${workspaceRoot}/server/php"
       ],

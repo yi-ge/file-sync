@@ -360,8 +360,6 @@ func fileUpload(fileId string, fileName string, sha256 string, content string, u
 	}
 
 	dataParams += data.Verify
-	// fmt.Println(dataParams)
-	// ff := dataParams[0 : len(dataParams)-1]
 
 	privateKeyEncrypted, err := getPrivateKey()
 	if err != nil {

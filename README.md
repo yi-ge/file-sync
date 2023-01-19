@@ -176,7 +176,9 @@ docker run xx:file-sync-server
 
 ### PHP
 
-require PHP >= v5.4 (64bit), It is recommended to turn on `shmop` expansion for a better experience.
+require PHP >= v5.4 (64bit), It is recommended to turn on `shmop` and `mbstring` expansion for a better experience.
+
+Upload the files in the `server/php` directory to the php root directory (excluding the `test` folder).
 
 Note: Never upload the `.env` file from the PHP code directory to the `Server`/`Virtual Host` to avoid leaking the database configuration information.
 
@@ -268,7 +270,7 @@ Start Apache, MySQL, and go to `http://localhost/phpmyadmin` to create a databas
 
 Modify the `.env.example` file in the root directory, and the environment variables in the `server/php/.htaccess.example` file.
 
-**Note:** In `Windows` platform, `PHP_CLI_SERVER_WORKERS` environment variable is not supported, so please use the recommended latest version of `xampp` or `LAMP`, `LNMP` configuration for development and debugging in `Windows` platform. VSCode launch configuration is not applicable to ` Windows` platform, do not use F5 to start the debugging environment.
+**Note:** In `Windows` platform, `PHP_CLI_SERVER_WORKERS` environment variable is not supported, so please use the recommended latest version of `xampp` or `LAMP`, `LNMP` configuration for development and debugging in `Windows` platform. VSCode launch configuration is not applicable to `Windows` platform, do not use F5 to start the debugging environment.
 
 ### *unix
 
@@ -277,7 +279,6 @@ Install PHP 5.4+ and MySQL 5.4+, enable `shmop` extension, configure `Zend Debug
 Refer to the `.env.example` file in the root directory and the `server/php/.env.example` file for detailed environment variable configuration. Configure the `.htaccess` file according to the `Use self-hosted server` above.
 
 Please set the `PHP_CLI_SERVER_WORKERS` environment variable to a value greater than `1` in order to test the working state of PHP in a Multi-threaded environment (relying on PHP CLI version >= 7.4.0, if you are developing with a lower version of PHP, please configure the `LNMP` or `LAMP` environment).
-
 
 </p>
 </details>
