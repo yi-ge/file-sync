@@ -1,10 +1,12 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -763,13 +765,18 @@ func (p *program) run() error {
 			// fmt.Println(eventURL)
 			client := sse.NewClient(eventURL)
 
+			// disabling ssl verification for self signed certs
+			client.Connection.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+
 			client.OnConnect(func(c *sse.Client) {
 				logger.Infof("Connected!")
 				// go watchFiles(data)
 			})
 
 			client.OnDisconnect(func(c *sse.Client) {
-				logger.Errorf("Disconnected!")
+				logger.Infof("Disconnected!")
 				if watcher != nil {
 					watcher.Close()
 					watcher = nil
@@ -788,6 +795,8 @@ func (p *program) run() error {
 				} else if string(msg.Event) == "config" {
 					// Check if config has been removed from other devices
 					go watchFiles(data)
+				} else if string(msg.Event) == "heartbeat" {
+					logger.Infof("Receive heartbeat package.")
 				}
 			})
 
