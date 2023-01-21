@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -25,6 +28,8 @@ func watchFiles(data Data) {
 
 		// Start listening for events.
 		go func() {
+			debounced := utils.Debounce(100 * time.Millisecond)
+
 			for {
 				select {
 				case event, ok := <-watcher.Events:
@@ -34,6 +39,37 @@ func watchFiles(data Data) {
 					log.Println("event:", event)
 					if event.Has(fsnotify.Write) {
 						log.Println("modified file:", event.Name)
+						debounced(func() {
+							filePath := event.Name
+							sha256, err := utils.FileSHA256(filePath)
+							if err != nil {
+								logger.Errorf(err.Error())
+							}
+							for i := 0; i < configs.Size(); i++ {
+								machineId := configs.Get(i, "machineId").ToString()
+								if machineId == data.MachineId {
+									actionPath := configs.Get(i, "path").ToString()
+									if actionPath == filePath {
+										fileId := configs.Get(i, "fileId").ToString()
+										if fileId != "" {
+											fileName := filepath.Base(filePath)
+											f, err := os.ReadFile(filePath)
+											if err != nil {
+												fmt.Println("read fail", err)
+											}
+											fileContent := string(f)
+											timestamp := time.Now().UnixNano() / 1e6
+											// TODO: 文件加密
+											err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
+											if err != nil {
+												logger.Errorf(err.Error())
+											}
+										}
+										break
+									}
+								}
+							}
+						})
 					}
 
 					if event.Has(fsnotify.Remove) {

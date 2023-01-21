@@ -474,8 +474,54 @@ func (p *program) Start(s service.Service) error {
 								color.Red(err.Error())
 								return nil
 							}
-							// TODO: 添加文件到watch
+						} else {
+							exists, _ := utils.FileExists(filePath)
+							if exists {
+								color.Blue("The file (" + fileName + " ID:" + json.Get("fileId").ToString()[:10] + ") already exists.")
+								actionVersion := ""
+								prompt := &survey.Select{
+									Message: "Please select the version you want to keep:",
+									Options: []string{"remote", "local"},
+								}
+								survey.AskOne(prompt, &actionVersion)
+								if actionVersion == "local" {
+									fileName = filepath.Base(filePath)
+									f, err := os.ReadFile(filePath)
+									if err != nil {
+										fmt.Println("read fail", err)
+									}
+									fileContent := string(f)
+									timestamp := time.Now().UnixNano() / 1e6
+									// TODO: 文件加密
+									err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
+									if err != nil {
+										color.Red(err.Error())
+										return nil
+									}
+									return nil
+								}
+							}
+							utils.MakeDirIfNotExist(filePath)
+
+							json, err := fileDownload(fileId, data)
+							if err != nil {
+								color.Red(err.Error())
+							}
+
+							content := json.Get("content").ToString()
+
+							res, err := utils.WriteByteFile(fileName, []byte(content), 0, true)
+							if err != nil {
+								color.Red(err.Error())
+							}
+
+							if !res {
+								color.Red("The file (" + fileName + " ID:" + json.Get("fileId").ToString()[:10] + ") write failure.")
+							}
 						}
+
+						// add file to watch
+						watcher.Add(filePath)
 
 						return nil
 					},
