@@ -12,8 +12,8 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/json-iterator/go v1.1.12
 	github.com/kardianos/service v1.2.2
-	github.com/r3labs/sse/v2 v2.9.0
 	github.com/urfave/cli/v3 v3.0.0-alpha
+	github.com/yi-ge/sse/v2 v2.10.2
 )
 
 require (

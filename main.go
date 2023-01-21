@@ -20,10 +20,10 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/joho/godotenv"
 	"github.com/kardianos/service"
-	sse "github.com/r3labs/sse/v2"
 	"github.com/urfave/cli/v3"
 	"github.com/yi-ge/file-sync/config"
 	"github.com/yi-ge/file-sync/utils"
+	sse "github.com/yi-ge/sse/v2"
 )
 
 var (
@@ -764,6 +764,7 @@ func (p *program) run() error {
 			eventURL := apiURL + "/events.php?email=" + emailSha1 + "&machineId=" + data.MachineId + "&timestamp=" + strconv.FormatInt(timestamp, 10)
 			// fmt.Println(eventURL)
 			client := sse.NewClient(eventURL)
+			client.AutoReconnect = true
 
 			// disabling ssl verification for self signed certs
 			client.Connection.Transport = &http.Transport{
@@ -772,7 +773,6 @@ func (p *program) run() error {
 
 			client.OnConnect(func(c *sse.Client) {
 				logger.Infof("Connected!")
-				// go watchFiles(data)
 			})
 
 			client.OnDisconnect(func(c *sse.Client) {
@@ -801,7 +801,7 @@ func (p *program) run() error {
 			})
 
 			if err != nil {
-				logger.Errorf(err.Error())
+				logger.Infof(err.Error())
 			}
 		}()
 	} else {
