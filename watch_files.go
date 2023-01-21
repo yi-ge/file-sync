@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/yi-ge/file-sync/utils"
 )
 
 func watchFiles(data Data) {
@@ -34,6 +35,23 @@ func watchFiles(data Data) {
 					if event.Has(fsnotify.Write) {
 						log.Println("modified file:", event.Name)
 					}
+
+					if event.Has(fsnotify.Remove) {
+						actionPath := event.Name
+						go func() {
+							for range time.Tick(time.Second) {
+								fileExists, _ := utils.FileExists(actionPath)
+								if fileExists {
+									err = watcher.Add(actionPath)
+									// TODO：检查一次该文件
+									if err != nil {
+										logger.Error(err)
+									}
+									break
+								}
+							}
+						}()
+					}
 				case err, ok := <-watcher.Errors:
 					if !ok {
 						return
@@ -48,9 +66,25 @@ func watchFiles(data Data) {
 			if machineId == data.MachineId {
 				actionPath := configs.Get(i, "path").ToString()
 				// Add a path.
-				err = watcher.Add(actionPath)
-				if err != nil {
-					logger.Error(err)
+				fileExists, _ := utils.FileExists(actionPath)
+				if fileExists {
+					err = watcher.Add(actionPath)
+					if err != nil {
+						logger.Error(err)
+					}
+				} else {
+					go func() {
+						for range time.Tick(time.Second) {
+							fileExists, _ := utils.FileExists(actionPath)
+							if fileExists {
+								err = watcher.Add(actionPath)
+								if err != nil {
+									logger.Error(err)
+								}
+								break
+							}
+						}
+					}()
 				}
 			}
 		}
