@@ -8,8 +8,6 @@ import (
 )
 
 func watchFiles(data Data) {
-	// TODO: 网络异常后重新检查
-	// TODO: Recheck after network anomaly
 	configs, err := listConfigs(data)
 	if err == nil {
 		if watcher != nil {

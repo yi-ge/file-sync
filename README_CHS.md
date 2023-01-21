@@ -162,6 +162,10 @@ file-sync remove --machineId <machine id> <file id>
 
 答： 此项目旨在同步单个配置文件，您可以通过`file-sync`同步其他文件同步工具的配置项，从而实现对多个文件的同步。
 
+**问题：为什么不能与NFS、SMB、FUSE、/proc或/sys一起工作？**
+
+答: `file-sync`依赖`fsnotify`，`fsnotify`需要底层操作系统的支持才能工作。目前的NFS和SMB协议没有为文件通知提供网络级支持，/proc和/sys虚拟文件系统也没有。
+
 ## 使用自托管服务器
 
 可以选择借助Docker或者自行搭建PHP运行环境在自己的服务器中部署。

@@ -160,6 +160,10 @@ Hint: All `<machine id>`, `<file id>` can be abbreviated.
 
 A: This project is designed to synchronize a single configuration file, and you can synchronize multiple files by synchronizing the configuration entries of other file synchronization tools via `file-sync`.
 
+**Q: Why don't work with NFS, SMB, FUSE, /proc, or /sys?**
+
+A: `file-sync` require `fsnotify`, `fsnotify` requires support from underlying OS to work. The current NFS and SMB protocols does not provide network level support for file notifications, and neither do the /proc and /sys virtual filesystems.
+
 ## Use self-hosted server
 
 You can choose to deploy it in your own server with the Docker or build your own PHP runtime.

@@ -777,6 +777,7 @@ func (p *program) run() error {
 
 			client.OnDisconnect(func(c *sse.Client) {
 				logger.Infof("Disconnected!")
+
 				if watcher != nil {
 					watcher.Close()
 					watcher = nil
@@ -788,7 +789,7 @@ func (p *program) run() error {
 			err := client.Subscribe("messages", func(msg *sse.Event) {
 				if string(msg.Event) == "connected" {
 					logger.Infof("Connected Event.")
-					go watchFiles(data)
+					go watchFiles(data) // Recheck after network anomaly
 				} else if string(msg.Event) == "file" {
 					fileIds := strings.Split(string(msg.Data), ",")
 					go job(fileIds, emailSha1, data)
