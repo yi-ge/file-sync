@@ -337,6 +337,9 @@ func fileUpload(fileId string, fileName string, sha256 string, content string, u
 
 	timestamp := time.Now().UnixNano() / 1e6
 
+	// TODO: File content encryption
+	content = "File content encryption"
+
 	bodyMap := map[string]string{
 		"email":     utils.GetSha1Str(data.Email),
 		"machineId": machineId,

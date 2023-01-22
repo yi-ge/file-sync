@@ -59,7 +59,6 @@ func watchFiles(data Data) {
 											}
 											fileContent := string(f)
 											timestamp := time.Now().UnixNano() / 1e6
-											// TODO: 文件加密
 											err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
 											if err != nil {
 												logger.Errorf(err.Error())

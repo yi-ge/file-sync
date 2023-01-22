@@ -1,12 +1,10 @@
 package main
 
 import (
-	"crypto/tls"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -23,7 +21,6 @@ import (
 	"github.com/urfave/cli/v3"
 	"github.com/yi-ge/file-sync/config"
 	"github.com/yi-ge/file-sync/utils"
-	sse "github.com/yi-ge/sse/v2"
 )
 
 var (
@@ -468,7 +465,6 @@ func (p *program) Start(s service.Service) error {
 							}
 							fileContent := string(f)
 							timestamp := time.Now().UnixNano() / 1e6
-							// TODO: 文件加密
 							err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
 							if err != nil {
 								color.Red(err.Error())
@@ -492,7 +488,6 @@ func (p *program) Start(s service.Service) error {
 									}
 									fileContent := string(f)
 									timestamp := time.Now().UnixNano() / 1e6
-									// TODO: 文件加密
 									err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
 									if err != nil {
 										color.Red(err.Error())
@@ -806,53 +801,7 @@ func (p *program) run() error {
 	data, err := getData()
 
 	if err == nil {
-		go func() {
-			timestamp := time.Now().UnixNano() / 1e6
-			emailSha1 := utils.GetSha1Str(data.Email)
-			eventURL := apiURL + "/events.php?email=" + emailSha1 + "&machineId=" + data.MachineId + "&timestamp=" + strconv.FormatInt(timestamp, 10)
-			// fmt.Println(eventURL)
-			client := sse.NewClient(eventURL)
-			client.AutoReconnect = true
-
-			// disabling ssl verification for self signed certs
-			client.Connection.Transport = &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}
-
-			client.OnConnect(func(c *sse.Client) {
-				logger.Infof("Connected!")
-			})
-
-			client.OnDisconnect(func(c *sse.Client) {
-				logger.Infof("Disconnected!")
-
-				if watcher != nil {
-					watcher.Close()
-					watcher = nil
-				}
-			})
-
-			logger.Infof("Registered Server Events!")
-
-			err := client.Subscribe("messages", func(msg *sse.Event) {
-				if string(msg.Event) == "connected" {
-					logger.Infof("Connected Event.")
-					go watchFiles(data) // Recheck after network anomaly
-				} else if string(msg.Event) == "file" {
-					fileIds := strings.Split(string(msg.Data), ",")
-					go job(fileIds, emailSha1, data)
-				} else if string(msg.Event) == "config" {
-					// Check if config has been removed from other devices
-					go watchFiles(data)
-				} else if string(msg.Event) == "heartbeat" {
-					logger.Infof("Receive heartbeat package.")
-				}
-			})
-
-			if err != nil {
-				logger.Infof(err.Error())
-			}
-		}()
+		go StartSSEClient(data)
 	} else {
 		logger.Error(err)
 	}
