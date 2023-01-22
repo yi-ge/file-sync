@@ -87,6 +87,7 @@ class FileSyncHandler
 
             $date = new DateTime('now', new DateTimeZone('Asia/Shanghai'));
             $date->setTimestamp(intval($json['updateAt'] / 1000));
+            $updateAt = $date->format($datetimeFormat);
 
             $last_file_id = $database->insert("file", [
                 "email" => $user['email'],
@@ -96,7 +97,7 @@ class FileSyncHandler
                 "content" => $json['content'],
                 "sha256" => $json['sha256'],
                 "fromMachineId" => $json['machineId'],
-                "updateAt" => $date->format($datetimeFormat),
+                "updateAt" => $updateAt,
             ]);
 
             if (function_exists('shmop_open')) {
@@ -106,7 +107,20 @@ class FileSyncHandler
                     $tmp = $memory->read();
                     $data = json_decode($tmp, true);
                 }
-                array_unshift($data, $json['fileId']);
+                $hasItem = false;
+                for ($i=0;$i<count($data);$i++) {
+                  if ($data[$i]["fileId"] == $json['fileId']) {
+                    $hasItem = true;
+                    $data[$i]["updateAt"] = $updateAt;
+                    break;
+                  }
+                }
+                if (!$hasItem) {
+                  array_unshift($data, [
+                    "fileId" => $json['fileId'],
+                    "updateAt" => $updateAt,
+                  ]);
+                }
                 while (count($data) > 10) {
                     array_pop($data);
                 }

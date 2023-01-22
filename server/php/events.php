@@ -62,9 +62,8 @@ if (function_exists('shmop_open')) {
         }
         if ($data && $data != $lastData) {
             $lastData = $data;
-            $data = json_decode($data, true);
             $c = "event: file" . PHP_EOL; // Define Event
-            $c .= "data: " . join(",", $data) . PHP_EOL; // Push content
+            $c .= "data: " . $data . PHP_EOL; // Push content
             echo $c . PHP_EOL;
         } else {
             if ($time > 59) {
@@ -86,7 +85,7 @@ if (function_exists('shmop_open')) {
     $time = 11;
     // Send message
     while (true) {
-        $files = $database->select("file", "fileId", [
+        $files = $database->select("file", ["@fileId", "updateAt"], [
             "emailSha1" => $emailSha1,
             "updateAt[>=]" => $date->format($datetimeFormat),
             "ORDER" => ["updateAt" => "DESC"],
@@ -96,7 +95,7 @@ if (function_exists('shmop_open')) {
 
         if ($files && sizeof($files) >= 1) {
             $c = "event: file" . PHP_EOL; // Define Event
-            $c .= "data: " . join(",", $files) . PHP_EOL; // Push content
+            $c .= "data: " . json_encode($files) . PHP_EOL; // Push content
             echo $c . PHP_EOL;
         } else {
             if ($time > 10) {

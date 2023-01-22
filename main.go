@@ -41,7 +41,7 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
-	if !service.Interactive() {
+	if service.Interactive() {
 		// logger.Info("Running in terminal.")
 
 		app := &cli.App{
@@ -520,8 +520,10 @@ func (p *program) Start(s service.Service) error {
 							}
 						}
 
-						// add file to watch
-						watcher.Add(filePath)
+						if watcher != nil {
+							// add file to watch
+							watcher.Add(filePath)
+						}
 
 						return nil
 					},
