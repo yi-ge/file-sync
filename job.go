@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"path/filepath"
 
 	"github.com/yi-ge/file-sync/utils"
@@ -14,6 +15,10 @@ type Jobs struct {
 var jobMap map[string]string
 
 func job(jobs []Jobs, emailSha1 string, data Data) {
+	privateKry, err := getPrivateKey()
+	if err != nil {
+		return
+	}
 	configs, err := listConfigs(data)
 	if err != nil {
 		return
@@ -44,11 +49,18 @@ func job(jobs []Jobs, emailSha1 string, data Data) {
 					json, err := fileDownload(fileId, data)
 					if err != nil {
 						logger.Errorf(err.Error())
+						break
 					}
 
-					content := json.Get("content").ToString()
+					contentEncrypted := json.Get("content").ToString()
+					contentBase64, err := base64.StdEncoding.DecodeString(contentEncrypted)
+					if err != nil {
+						logger.Errorf(err.Error())
+						break
+					}
+					content := utils.RsaDecrypt([]byte(contentBase64), privateKry)
 
-					res, err := utils.WriteByteFile(actionPath, []byte(content), 0, true)
+					res, err := utils.WriteByteFile(actionPath, content, 0, true)
 					if err != nil {
 						logger.Errorf(err.Error())
 					}

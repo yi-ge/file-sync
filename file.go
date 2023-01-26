@@ -337,15 +337,20 @@ func fileUpload(fileId string, fileName string, sha256 string, content string, u
 
 	timestamp := time.Now().UnixNano() / 1e6
 
-	// TODO: File content encryption
-	content = "File content encryption"
+	publicKey, err := getPublicKey()
+	if err != nil {
+		return err
+	}
+
+	// TODO: File content encryption\
+	contentEncrypted := base64.URLEncoding.EncodeToString(utils.RsaEncrypt([]byte(content), publicKey))
 
 	bodyMap := map[string]string{
 		"email":     utils.GetSha1Str(data.Email),
 		"machineId": machineId,
 		"fileId":    fileId,
 		"fileName":  fileName,
-		"content":   content,
+		"content":   contentEncrypted,
 		"sha256":    sha256,
 		"updateAt":  strconv.FormatInt(updateAt, 10),
 		"timestamp": strconv.FormatInt(timestamp, 10),
