@@ -99,40 +99,52 @@ func GenerateRSAKeypairPEM(keySize int, rsaPrivateKeyPassword string) (privKeyPE
 
 // RsaEncryptWithSha1Base64 加密：采用sha1算法加密后转base64格式
 func RsaEncryptWithSha1Base64(originalData, publicKey string) (string, error) {
-	key, _ := base64.StdEncoding.DecodeString(publicKey)
-	pubKey, _ := x509.ParsePKIXPublicKey(key)
-	encryptedData, err := rsa.EncryptPKCS1v15(rand.Reader, pubKey.(*rsa.PublicKey), []byte(originalData))
-	return base64.StdEncoding.EncodeToString(encryptedData), err
+	// 解密pem格式的公钥
+	block, _ := pem.Decode([]byte(publicKey))
+	if block == nil {
+		panic(errors.New("public key error"))
+	}
+	// 解析公钥
+	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return "", err
+	}
+	encryptedData, err := rsa.EncryptPKCS1v15(rand.Reader, pubInterface.(*rsa.PublicKey), []byte(originalData))
+	return base64.URLEncoding.EncodeToString(encryptedData), err
 }
 
 // RsaDecryptWithSha1Base64 解密：对采用sha1算法加密后转base64格式的数据进行解密（私钥PKCS1格式）
 func RsaDecryptWithSha1Base64(encryptedData, privateKey string) (string, error) {
-	encryptedDecodeBytes, err := base64.StdEncoding.DecodeString(encryptedData)
+	encryptedDecodeBytes, err := base64.URLEncoding.DecodeString(encryptedData)
 	if err != nil {
 		return "", err
 	}
-	key, _ := base64.StdEncoding.DecodeString(privateKey)
-	prvKey, _ := x509.ParsePKCS1PrivateKey(key)
-	originalData, err := rsa.DecryptPKCS1v15(rand.Reader, prvKey, encryptedDecodeBytes)
+	block, _ := pem.Decode([]byte(privateKey))
+	if block == nil {
+		return "", errors.New("no PrivateKey found")
+	}
+	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return "", err
+	}
+	originalData, err := rsa.DecryptPKCS1v15(rand.Reader, privKey, encryptedDecodeBytes)
 	return string(originalData), err
 }
 
 // RsaSignWithSha1Hex 签名：采用sha1算法进行签名并输出为hex格式（私钥PKCS8格式）
 func RsaSignWithSha1Hex(data string, prvKey string) (string, error) {
-	keyBytes, err := hex.DecodeString(prvKey)
-	if err != nil {
-		fmt.Println(err)
-		return "", err
+	block, _ := pem.Decode([]byte(prvKey))
+	if block == nil {
+		return "", errors.New("no PrivateKey found")
 	}
-	privateKey, err := x509.ParsePKCS8PrivateKey(keyBytes)
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		fmt.Println("ParsePKCS8PrivateKey err", err)
 		return "", err
 	}
 	h := sha1.New()
 	h.Write([]byte([]byte(data)))
 	hash := h.Sum(nil)
-	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey.(*rsa.PrivateKey), crypto.SHA1, hash[:])
+	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA1, hash[:])
 	if err != nil {
 		fmt.Printf("Error from signing: %s\n", err)
 		return "", err
@@ -166,12 +178,15 @@ func RsaSignWithSha1HexPkcs1(data string, pkcs1keyStr string) ([]byte, error) {
 
 // RsaVerySignWithSha1Base64 验签：对采用sha1算法进行签名后转base64格式的数据进行验签
 func RsaVerySignWithSha1Base64(originalData, signData, pubKey string) error {
-	sign, err := base64.StdEncoding.DecodeString(signData)
+	sign, err := hex.DecodeString(signData)
 	if err != nil {
 		return err
 	}
-	public, _ := base64.StdEncoding.DecodeString(pubKey)
-	pub, err := x509.ParsePKIXPublicKey(public)
+	block, _ := pem.Decode([]byte(pubKey))
+	if block == nil {
+		panic(errors.New("public key error"))
+	}
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return err
 	}

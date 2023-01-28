@@ -310,6 +310,25 @@ func (p *program) Start(s service.Service) error {
 							inputArg := cCtx.Args().Get(0)
 							filePath = cCtx.Args().Get(1)
 
+							privateKeyEncrypted, err := getPrivateKey()
+							if err != nil {
+								color.Red(err.Error())
+								return nil
+							}
+
+							privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+							if err != nil {
+								color.Red(err.Error())
+								return nil
+							}
+
+							decrypted, privateKey, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+							if err != nil || !decrypted {
+								color.Red((errors.New("secret decrypt error: " + err.Error())).Error())
+								return nil
+							}
+
 							configs, err := listConfigs(data)
 							if err != nil {
 								color.Red(err.Error())
@@ -319,7 +338,13 @@ func (p *program) Start(s service.Service) error {
 								theFileId := configs.Get(i, "fileId").ToString()
 								if strings.Contains(theFileId, inputArg) {
 									fileId = theFileId
-									fileName = configs.Get(i, "fileName").ToString()
+									fileNameEncrypted := configs.Get(i, "fileName").ToString()
+									fileNameBase64, err := base64.URLEncoding.DecodeString(fileNameEncrypted)
+									if err != nil {
+										color.Red(err.Error())
+										return nil
+									}
+									fileName = string(utils.RsaDecrypt([]byte(fileNameBase64), privateKey))
 									break
 								}
 							}
@@ -339,7 +364,13 @@ func (p *program) Start(s service.Service) error {
 										return err
 									}
 									fileId = configs.Get(index-1, "fileId").ToString()
-									fileName = configs.Get(index-1, "fileName").ToString()
+									fileNameEncrypted := configs.Get(index-1, "fileName").ToString()
+									fileNameBase64, err := base64.URLEncoding.DecodeString(fileNameEncrypted)
+									if err != nil {
+										color.Red(err.Error())
+										return nil
+									}
+									fileName = string(utils.RsaDecrypt([]byte(fileNameBase64), privateKey))
 								} else {
 									err = errors.New("invalid file id")
 									color.Red(err.Error())
@@ -442,14 +473,7 @@ func (p *program) Start(s service.Service) error {
 						// fmt.Println("actionMachineId: ", actionMachineId)
 						// fmt.Println("path: ", filePath)
 
-						publicKey, err := getPublicKey()
-						if err != nil {
-							color.Red(err.Error())
-							return nil
-						}
-						fileNameEncrypted := base64.URLEncoding.EncodeToString(utils.RsaEncrypt([]byte(fileName), publicKey))
-
-						json, err := addConfig(fileId, fileNameEncrypted, filePath, actionMachineId, data)
+						json, err := addConfig(fileId, fileName, filePath, actionMachineId, data)
 						if err != nil {
 							color.Red(err.Error())
 							return nil
@@ -539,6 +563,25 @@ func (p *program) Start(s service.Service) error {
 							color.Red(err.Error())
 						}
 
+						privateKeyEncrypted, err := getPrivateKey()
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						decrypted, privateKey, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+						if err != nil || !decrypted {
+							color.Red((errors.New("secret decrypt error: " + err.Error())).Error())
+							return nil
+						}
+
 						isCache := false
 						configs, err := listConfigs(data)
 						if err != nil {
@@ -561,7 +604,7 @@ func (p *program) Start(s service.Service) error {
 						}
 
 						if configs != nil && configs.Size() > 0 {
-							printTable(configs, displayRowSet, true, hiddenLongPath)
+							printConfigTable(configs, displayRowSet, true, hiddenLongPath, string(privateKey))
 							if isCache {
 								color.Red("Request server failed, above is cached data!")
 							}
@@ -592,6 +635,25 @@ func (p *program) Start(s service.Service) error {
 						data, err := getData()
 						if err != nil {
 							color.Red(err.Error())
+						}
+
+						privateKeyEncrypted, err := getPrivateKey()
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						decrypted, privateKey, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+						if err != nil || !decrypted {
+							color.Red((errors.New("secret decrypt error: " + err.Error())).Error())
+							return nil
 						}
 
 						actionMachineId := data.MachineId
@@ -666,7 +728,13 @@ func (p *program) Start(s service.Service) error {
 							theFileId := configs.Get(i, "fileId").ToString()
 							if strings.Contains(theFileId, inputArg) {
 								fileId = theFileId
-								fileName = configs.Get(i, "fileName").ToString()
+								fileNameEncrypted := configs.Get(i, "fileName").ToString()
+								fileNameBase64, err := base64.URLEncoding.DecodeString(fileNameEncrypted)
+								if err != nil {
+									color.Red(err.Error())
+									return nil
+								}
+								fileName = string(utils.RsaDecrypt([]byte(fileNameBase64), privateKey))
 								break
 							}
 						}
@@ -686,7 +754,13 @@ func (p *program) Start(s service.Service) error {
 									return err
 								}
 								fileId = configs.Get(index-1, "fileId").ToString()
-								fileName = configs.Get(index-1, "fileName").ToString()
+								fileNameEncrypted := configs.Get(index-1, "fileName").ToString()
+								fileNameBase64, err := base64.URLEncoding.DecodeString(fileNameEncrypted)
+								if err != nil {
+									color.Red(err.Error())
+									return nil
+								}
+								fileName = string(utils.RsaDecrypt([]byte(fileNameBase64), privateKey))
 							} else {
 								err = errors.New("invalid file id")
 								color.Red(err.Error())

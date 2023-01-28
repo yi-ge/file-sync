@@ -24,13 +24,20 @@ func addConfig(fileId string, fileName string, path string, actionMachineId stri
 
 	timestamp := time.Now().UnixNano() / 1e6
 
+	publicKey, err := getPublicKey()
+	if err != nil {
+		return nil, err
+	}
+	fileNameEncrypted := base64.URLEncoding.EncodeToString(utils.RsaEncrypt([]byte(fileName), publicKey))
+	pathEncrypted := base64.URLEncoding.EncodeToString(utils.RsaEncrypt([]byte(path), publicKey))
+
 	bodyMap := map[string]string{
 		"email":           utils.GetSha1Str(data.Email),
 		"machineId":       machineId,
 		"action":          "add",
 		"fileId":          fileId,
-		"fileName":        fileName,
-		"path":            path,
+		"fileName":        fileNameEncrypted,
+		"path":            pathEncrypted,
 		"actionMachineId": actionMachineId,
 		"attribute":       "",
 		"timestamp":       strconv.FormatInt(timestamp, 10),
@@ -138,8 +145,6 @@ func removeConfig(fileId string, actionMachineId string, data Data) error {
 	}
 
 	dataParams += data.Verify
-	// fmt.Println(dataParams)
-	// ff := dataParams[0 : len(dataParams)-1]
 
 	privateKeyEncrypted, err := getPrivateKey()
 	if err != nil {
@@ -180,7 +185,6 @@ func removeConfig(fileId string, actionMachineId string, data Data) error {
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	// fmt.Println(string(body))
 
 	if err != nil {
 		return err
@@ -224,8 +228,6 @@ func listConfigs(data Data) (jsoniter.Any, error) {
 	}
 
 	dataParams += data.Verify
-	// fmt.Println(dataParams)
-	// ff := dataParams[0 : len(dataParams)-1]
 
 	privateKeyEncrypted, err := getPrivateKey()
 	if err != nil {
@@ -266,7 +268,6 @@ func listConfigs(data Data) (jsoniter.Any, error) {
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	// fmt.Println(string(body))
 
 	if err != nil {
 		return nil, err
@@ -342,14 +343,14 @@ func fileUpload(fileId string, fileName string, sha256 string, content string, u
 		return err
 	}
 
-	// TODO: File content encryption\
+	fileNameEncrypted := base64.URLEncoding.EncodeToString(utils.RsaEncrypt([]byte(fileName), publicKey))
 	contentEncrypted := base64.URLEncoding.EncodeToString(utils.RsaEncrypt([]byte(content), publicKey))
 
 	bodyMap := map[string]string{
 		"email":     utils.GetSha1Str(data.Email),
 		"machineId": machineId,
 		"fileId":    fileId,
-		"fileName":  fileName,
+		"fileName":  fileNameEncrypted,
 		"content":   contentEncrypted,
 		"sha256":    sha256,
 		"updateAt":  strconv.FormatInt(updateAt, 10),
