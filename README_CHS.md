@@ -25,7 +25,7 @@
 ## 安装
 
 ```bash
-go install https://github.com/yi-ge/file-sync
+go install yi-ge/file-sync
 ```
 
 ## 使用

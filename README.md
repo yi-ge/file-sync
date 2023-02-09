@@ -23,7 +23,7 @@ The design principle of `file-sync`: The server is untrustworthy, the client (lo
 ## Install
 
 ```bash
-go install https://github.com/yi-ge/file-sync
+go install yi-ge/file-sync
 ```
 
 ## Usage
