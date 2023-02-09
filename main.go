@@ -167,7 +167,12 @@ func (p *program) Start(s service.Service) error {
 								machineId := devices.Get(i, "machineId").ToString()
 								if strings.Contains(machineId, s) {
 									removeMachineId = machineId
-									removeMachineName = devices.Get(i, "machineName").ToString()
+									encryptedRemoveMachineName := devices.Get(i, "machineName").ToString()
+									removeMachineName, err = utils.AESCTRDecryptWithBase64(encryptedRemoveMachineName, []byte(data.Verify))
+									if err != nil {
+										color.Red(err.Error())
+										return nil
+									}
 									break
 								}
 							}
@@ -187,7 +192,12 @@ func (p *program) Start(s service.Service) error {
 										return err
 									}
 									removeMachineId = devices.Get(index-1, "machineId").ToString()
-									removeMachineName = devices.Get(index-1, "machineName").ToString()
+									encryptedRemoveMachineName := devices.Get(index-1, "machineName").ToString()
+									removeMachineName, err = utils.AESCTRDecryptWithBase64(encryptedRemoveMachineName, []byte(data.Verify))
+									if err != nil {
+										color.Red(err.Error())
+										return nil
+									}
 								} else {
 									err = errors.New("invalid machine id")
 									color.Red(err.Error())
@@ -255,7 +265,7 @@ func (p *program) Start(s service.Service) error {
 							}
 							displayRowSet := mapset.NewSet("id", "machineKey")
 							if devices.Size() > 0 {
-								printTable(devices, displayRowSet, true, false)
+								printDeviceTable(devices, displayRowSet, true, false, []byte(data.Verify))
 							} else {
 								color.Red("No registered devices.")
 							}
@@ -428,7 +438,12 @@ func (p *program) Start(s service.Service) error {
 									machineId := devices.Get(i, "machineId").ToString()
 									if strings.Contains(machineId, s) {
 										actionMachineId = machineId
-										actionMachineName = devices.Get(i, "machineName").ToString()
+										encryptedActionMachineName := devices.Get(i, "machineName").ToString()
+										actionMachineName, err = utils.AESCTRDecryptWithBase64(encryptedActionMachineName, []byte(data.Verify))
+										if err != nil {
+											color.Red(err.Error())
+											return nil
+										}
 										break
 									}
 								}
@@ -448,7 +463,12 @@ func (p *program) Start(s service.Service) error {
 											return err
 										}
 										actionMachineId = devices.Get(index-1, "machineId").ToString()
-										actionMachineName = devices.Get(index-1, "machineName").ToString()
+										encryptedActionMachineName := devices.Get(index-1, "machineName").ToString()
+										actionMachineName, err = utils.AESCTRDecryptWithBase64(encryptedActionMachineName, []byte(data.Verify))
+										if err != nil {
+											color.Red(err.Error())
+											return nil
+										}
 									} else {
 										err = errors.New("invalid machine id")
 										color.Red(err.Error())
@@ -677,7 +697,12 @@ func (p *program) Start(s service.Service) error {
 									machineId := devices.Get(i, "machineId").ToString()
 									if strings.Contains(machineId, s) {
 										actionMachineId = machineId
-										actionMachineName = devices.Get(i, "machineName").ToString()
+										encryptedActionMachineName := devices.Get(i, "machineName").ToString()
+										actionMachineName, err = utils.AESCTRDecryptWithBase64(encryptedActionMachineName, []byte(data.Verify))
+										if err != nil {
+											color.Red(err.Error())
+											return nil
+										}
 										break
 									}
 								}

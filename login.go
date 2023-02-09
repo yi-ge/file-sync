@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/base64"
 	"errors"
 	"io"
 	"net/http"
@@ -27,17 +26,22 @@ func login(email string, password string, machineName string) error {
 		return errors.New("GET request failed: " + err.Error())
 	}
 
-	encryptedPrivateKeyStr, err := utils.AESCTREncrypt([]byte(encryptedPrivKeyPEMBase64), []byte(rsaPrivateEncryptPassword))
+	encryptedPrivateKeyStr, err := utils.AESCTREncryptWithBase64([]byte(encryptedPrivKeyPEMBase64), []byte(rsaPrivateEncryptPassword))
+	if err != nil {
+		return errors.New("AES encrypt failed: " + err.Error())
+	}
+
+	encryptedMachineName, err := utils.AESCTREncryptWithBase64([]byte(machineName), []byte(verify))
 	if err != nil {
 		return errors.New("AES encrypt failed: " + err.Error())
 	}
 	bodyMap := map[string]string{
 		"email":       email,
 		"machineId":   machineId,
-		"machineName": machineName,
+		"machineName": encryptedMachineName,
 		"verify":      verify,
 		"publicKey":   publicKeyPEM.String(),
-		"privateKey":  base64.RawURLEncoding.EncodeToString(encryptedPrivateKeyStr),
+		"privateKey":  encryptedPrivateKeyStr,
 	}
 	jsonBody, err := jsoniter.Marshal(bodyMap)
 	if err != nil {
@@ -130,13 +134,7 @@ func login(email string, password string, machineName string) error {
 
 		// return registerDevice(data, publicKey, privateKey)
 	}
-
-	privateKeyByte, err := base64.RawURLEncoding.DecodeString(privateKey)
-	if err != nil {
-		return errors.New("secret decrypt error: " + err.Error())
-	}
-
-	privateKeyEncrypted, err := utils.AESCTRDecrypt(privateKeyByte, []byte(rsaPrivateEncryptPassword))
+	privateKeyEncrypted, err := utils.AESCTRDecryptWithBase64(privateKey, []byte(rsaPrivateEncryptPassword))
 
 	if err != nil || len(privateKeyEncrypted) == 0 {
 		return errors.New("secret decrypt error: " + err.Error())
@@ -149,8 +147,8 @@ func login(email string, password string, machineName string) error {
 		RsaPrivateEncryptPassword: rsaPrivateEncryptPassword,
 		MachineId:                 machineId,
 		MachineName:               machineName,
-		EncryptedMachineKey:       string(encryptedMachineKey),
+		EncryptedMachineKey:       encryptedMachineKey,
 	}
 
-	return registerDevice(data, publicKey, string(privateKeyEncrypted))
+	return registerDevice(data, publicKey, privateKeyEncrypted)
 }

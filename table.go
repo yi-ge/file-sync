@@ -11,7 +11,7 @@ import (
 	"github.com/yi-ge/file-sync/utils"
 )
 
-func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string], AutoMerge bool, hiddenLongPath bool) {
+func printDeviceTable(jsonArray jsoniter.Any, displayRow mapset.Set[string], AutoMerge bool, hiddenLongPath bool, verify []byte) {
 	// rowConfigAutoMerge := table.RowConfig{AutoMerge: AutoMerge}
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
@@ -48,6 +48,14 @@ func printTable(jsonArray jsoniter.Any, displayRow mapset.Set[string], AutoMerge
 						} else {
 							col[j] = value
 						}
+					} else if key == "machineName" {
+						value := line.Get(key).ToString()
+						valueTmp, err := utils.AESCTRDecryptWithBase64(value, verify)
+						if err != nil {
+							color.Red(err.Error())
+							return
+						}
+						col[j] = valueTmp
 					}
 					j += 1
 				}

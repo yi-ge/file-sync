@@ -12,7 +12,7 @@ func TestAesCrt(t *testing.T) {
 	key := []byte("1234567887654321")
 
 	// Encrypt
-	encryptData, err := AESCTREncrypt([]byte(src), key)
+	encryptData, err := AESCTREncryptWithBase64([]byte(src), key)
 	if err != nil {
 		t.Log("err:", err)
 		return
@@ -20,7 +20,7 @@ func TestAesCrt(t *testing.T) {
 	t.Logf("Crypt data: %x\n", encryptData)
 
 	// Decrypt
-	plainText, err := AESCTRDecrypt(encryptData, key)
+	plainText, err := AESCTRDecryptWithBase64(encryptData, key)
 	if err != nil {
 		t.Fatal("err:", err)
 		return

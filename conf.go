@@ -17,12 +17,12 @@ func setConfig(data string) error {
 	}
 	defer file.Close()
 
-	encryptData, err := utils.AESCTREncrypt([]byte(data), []byte(machineId[:32]))
+	encryptData, err := utils.AESCTREncryptWithBase64([]byte(data), []byte(machineId[:32]))
 	if err != nil {
 		return err
 	}
 
-	file.Write(encryptData)
+	file.Write([]byte(encryptData))
 
 	return nil
 }
@@ -42,12 +42,12 @@ func getConfig() string {
 			return ""
 		}
 
-		encryptData, err := utils.AESCTRDecrypt(dataBytes, []byte(machineId[:32]))
+		encryptData, err := utils.AESCTRDecryptWithBase64(string(dataBytes), []byte(machineId[:32]))
 		if err != nil {
 			return ""
 		}
 
-		return string(encryptData)
+		return encryptData
 	}
 
 	return ""
