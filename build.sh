@@ -1,7 +1,25 @@
 #/bin/bash
-CLINAME=$(grep 'name' package.json | cut -d '"' -f4)
-VERSION=$(grep 'version' package.json | cut -d '"' -f4)
-NAME=$(echo ${CLINAME%????})
+VERSION=0.1.0
+NAME=file-sync
+
+if ! [ -x "$(command -v upx)" ]; then
+  echo 'Error: upx is not installed.'
+  if [ "$(uname)" == "Darwin" ]; then
+    brew install upx
+  elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    apt update && apt install upx -y # osslsigncode
+  fi
+fi
+
+if ! [ -x "$(command -v sed)" ]; then
+  echo 'Error: sed is not installed.'
+  if [ "$(uname)" == "Darwin" ]; then
+    brew install gnu-sed
+  elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    apt install sed -y # osslsigncode
+  fi
+fi
+
 echo "// Do not modify this file.
 package config
 
@@ -11,12 +29,11 @@ const (
 )
 " >config/auto_config.go
 
-# sed -i 's/isDev\s=\sos\.Getenv\("GO_ENV"\)\s==\s"development"/isDev\s=\sfalse/g' main.go
-
-if ! [ -x "$(command -v upx)" ]; then
-  echo 'Error: upx is not installed.'
-  apt update && apt install upx -y # osslsigncode
+if [ "$(uname)" == "Darwin" ]; then
+  alias sed='gsed'
 fi
+
+sed -i 's/isDev[[:space:]]=[[:space:]]os\.Getenv\("GO_ENV"\)[[:space:]]==[[:space:]]"development"/isDev[[:space:]]=[[:space:]]false/g' main.go
 
 if [ ! -d bin ]; then
   mkdir bin
