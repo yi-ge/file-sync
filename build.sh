@@ -33,7 +33,7 @@ if [ "$(uname)" == "Darwin" ]; then
   alias sed='gsed'
 fi
 
-sed -i 's/isDev[[:space:]]=[[:space:]]os\.Getenv\("GO_ENV"\)[[:space:]]==[[:space:]]"development"/isDev[[:space:]]=[[:space:]]false/g' main.go
+sed -i 's/isDev[[:space:]]=[[:space:]]os\.Getenv("GO_ENV")[[:space:]]==[[:space:]]"development"/isDev = false/g' main.go
 
 if [ ! -d bin ]; then
   mkdir bin
@@ -102,4 +102,4 @@ else
   upx ./bin/file-sync-windows-amd64.exe
 fi
 
-sed -i 's/isDev\s=\sfalse/isDev\s=\sos\.Getenv\("GO_ENV"\)\s==\s"development"/g' main.go
+sed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = os.Getenv("GO_ENV") == "development"/g' main.go
