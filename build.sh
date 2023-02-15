@@ -44,6 +44,10 @@ if [ "$1" == "test" ]; then
   env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o ./bin/file-sync-darwin-arm64 .
   upx ./bin/file-sync-darwin-arm64
 else
+  echo "env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags \"-s -w\" -o ./bin/file-sync-darwin-arm64 ."
+  env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o ./bin/file-sync-darwin-arm64 .
+  upx ./bin/file-sync-darwin-arm64
+
   echo "env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags \"-s -w\" -o ./bin/file-sync-darwin-amd64 ."
   env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/file-sync-darwin-amd64 .
 
