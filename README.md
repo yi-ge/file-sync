@@ -34,7 +34,7 @@ go install yi-ge/file-sync
 file-sync --config https://example.com
 ```
 
-The free public server provided by the command author is used by default: <https://api.yizcore.xyz>
+The free public server provided by the command author is used by default: <https://file-sync.yizcore.xyz>
 
 ### Login / Register Device
 

@@ -26,7 +26,7 @@ import (
 var (
 	isDev          = false
 	logger         service.Logger
-	apiURL         = "https://api.yizcore.xyz"
+	apiURL         = "https://file-sync.yizcore.xyz"
 	password       string
 	configInstance = config.Instance()
 	watcher        *fsnotify.Watcher

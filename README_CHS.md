@@ -36,7 +36,7 @@ go install yi-ge/file-sync
 file-sync --config https://example.com
 ```
 
-默认使用命令作者提供的免费公共服务器：<https://api.yizcore.xyz>
+默认使用命令作者提供的免费公共服务器：<https://file-sync.yizcore.xyz>
 
 ### 显示系统信息
 
