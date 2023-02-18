@@ -11,12 +11,15 @@ if ! [ -x "$(command -v upx)" ]; then
   fi
 fi
 
-if ! [ -x "$(command -v sed)" ]; then
-  echo 'Notice: sed is not installed, missing dependencies being installed.'
-  if [ "$(uname)" == "Darwin" ]; then
-    brew install gnu-sed
-  elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+  if ! [ -x "$(command -v sed)" ]; then
+    echo 'Notice: sed is not installed, missing dependencies being installed.'
     apt install sed -y # osslsigncode
+  fi
+elif [ "$(uname)" == "Darwin" ]; then
+  if ! [ -x "$(command -v gsed)" ]; then
+    echo 'Notice: sed is not installed, missing dependencies being installed.'
+    brew install gnu-sed
   fi
 fi
 
