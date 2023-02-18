@@ -935,9 +935,19 @@ func (p *program) Stop(s service.Service) error {
 func main() {
 	// svcFlag := flag.String("service", "", "Control the system service.")
 	// flag.Parse()
-	err := godotenv.Load()
+	hasEnvFile, err := utils.FileExists(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal(err)
+	}
+	if hasEnvFile {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	} else {
+		if os.Getenv("GO_ENV") == "development" {
+			log.Println("No .env file found, using default values.")
+		}
 	}
 
 	isDev = os.Getenv("GO_ENV") == "development"

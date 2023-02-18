@@ -2,24 +2,24 @@
 VERSION=0.1.0
 NAME=file-sync
 
-if ! [ -x "$(command -v upx)" ]; then
-  echo 'Notice: upx is not installed, missing dependencies being installed.'
-  if [ "$(uname)" == "Darwin" ]; then
-    brew install upx
-  elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    apt update && apt install upx -y # osslsigncode
-  fi
-fi
+# if ! [ -x "$(command -v upx)" ]; then
+#   echo 'Notice: upx is not installed, missing dependencies being installed.'
+#   if [ "$(uname)" == "Darwin" ]; then
+#     brew install upx
+#   elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+#     apt update && apt install upx -y # osslsigncode
+#   fi
+# fi
 
-if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-  if ! [ -x "$(command -v sed)" ]; then
-    echo 'Notice: sed is not installed, missing dependencies being installed.'
-    apt install sed -y # osslsigncode
-  fi
-elif [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" == "Darwin" ]; then
   if ! [ -x "$(command -v gsed)" ]; then
     echo 'Notice: sed is not installed, missing dependencies being installed.'
     brew install gnu-sed
+  fi
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+  if ! [ -x "$(command -v sed)" ]; then
+    echo 'Notice: sed is not installed, missing dependencies being installed.'
+    apt install sed -y # osslsigncode
   fi
 fi
 
@@ -45,11 +45,11 @@ fi
 if [ "$1" == "test" ]; then
   echo "env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags \"-s -w\" -o ./bin/file-sync-darwin-arm64 ."
   env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o ./bin/file-sync-darwin-arm64 .
-  upx ./bin/file-sync-darwin-arm64
+  # upx ./bin/file-sync-darwin-arm64
 else
   echo "env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags \"-s -w\" -o ./bin/file-sync-darwin-arm64 ."
   env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o ./bin/file-sync-darwin-arm64 .
-  upx ./bin/file-sync-darwin-arm64
+  # upx ./bin/file-sync-darwin-arm64
 
   echo "env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags \"-s -w\" -o ./bin/file-sync-darwin-amd64 ."
   env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/file-sync-darwin-amd64 .
@@ -64,15 +64,15 @@ else
 
   echo "env CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -ldflags \"-s -w\" -o ./bin/file-sync-linux-386 ."
   env CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -ldflags "-s -w" -o ./bin/file-sync-linux-386 .
-  upx ./bin/file-sync-linux-386
+  # upx ./bin/file-sync-linux-386
 
   echo "env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags \"-s -w\" -o ./bin/file-sync-linux-amd64 ."
   env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/file-sync-linux-amd64 .
-  upx ./bin/file-sync-linux-amd64
+  # upx ./bin/file-sync-linux-amd64
 
   echo "env CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -ldflags \"-s -w\" -o ./bin/file-sync-linux-armv7l ."
   env CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -ldflags "-s -w" -o ./bin/file-sync-linux-armv7l .
-  upx ./bin/file-sync-linux-armv7l
+  # upx ./bin/file-sync-linux-armv7l
 
   echo "env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags \"-s -w\" -o ./bin/file-sync-linux-arm64 ."
   env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -o ./bin/file-sync-linux-arm64 .
@@ -88,19 +88,19 @@ else
 
   echo "env CGO_ENABLED=0 GOOS=linux GOARCH=mips GOMIPS=softfloat go build -ldflags \"-s -w\" -o ./bin/file-sync-linux-mips ."
   env CGO_ENABLED=0 GOOS=linux GOARCH=mips GOMIPS=softfloat go build -ldflags "-s -w" -o ./bin/file-sync-linux-mips .
-  upx ./bin/file-sync-linux-mips
+  # upx ./bin/file-sync-linux-mips
 
   echo "env CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags \"-s -w\" -o ./bin/file-sync-linux-mipsle ."
   env CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags "-s -w" -o ./bin/file-sync-linux-mipsle .
-  upx ./bin/file-sync-linux-mipsle
+  # upx ./bin/file-sync-linux-mipsle
 
   echo "env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -ldflags \"-s -w\" -o ./bin/file-sync-windows-386.exe ."
   env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -ldflags "-s -w" -o ./bin/file-sync-windows-386.exe .
-  upx ./bin/file-sync-windows-386.exe
+  # upx ./bin/file-sync-windows-386.exe
 
   echo "env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags \"-s -w\" -o ./bin/file-sync-windows-amd64.exe ."
   env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/file-sync-windows-amd64.exe .
-  upx ./bin/file-sync-windows-amd64.exe
+  # upx ./bin/file-sync-windows-amd64.exe
 fi
 
 sed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = os.Getenv("GO_ENV") == "development"/g' main.go
