@@ -875,8 +875,10 @@ func (p *program) Start(s service.Service) error {
 					},
 				},
 			},
-			Action: func(*cli.Context) error {
-				// fmt.Println("boom! I say!")
+			Action: func(cCtx *cli.Context) error {
+				if cCtx.NumFlags() == 0 {
+					return cli.ShowAppHelp(cCtx)
+				}
 				return nil
 			},
 		}
