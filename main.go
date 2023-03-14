@@ -151,6 +151,7 @@ func (p *program) Start(s service.Service) error {
 						data, err := getData()
 						if err != nil {
 							color.Red(err.Error())
+							return nil
 						}
 
 						if s == "" {
@@ -257,11 +258,13 @@ func (p *program) Start(s service.Service) error {
 							data, err := getData()
 							if err != nil {
 								color.Red(err.Error())
+								return nil
 							}
 
 							devices, err := listDevices(data)
 							if err != nil {
 								color.Red(err.Error())
+								return nil
 							}
 							displayRowSet := mapset.NewSet("id", "machineKey")
 							if devices.Size() > 0 {
@@ -305,6 +308,7 @@ func (p *program) Start(s service.Service) error {
 						data, err := getData()
 						if err != nil {
 							color.Red(err.Error())
+							return nil
 						}
 
 						var (
@@ -342,6 +346,7 @@ func (p *program) Start(s service.Service) error {
 							configs, err := listConfigs(data)
 							if err != nil {
 								color.Red(err.Error())
+								return nil
 							}
 
 							for i := 0; i < configs.Size(); i++ {
@@ -581,6 +586,7 @@ func (p *program) Start(s service.Service) error {
 						data, err := getData()
 						if err != nil {
 							color.Red(err.Error())
+							return nil
 						}
 
 						privateKeyEncrypted, err := getPrivateKey()
@@ -655,6 +661,7 @@ func (p *program) Start(s service.Service) error {
 						data, err := getData()
 						if err != nil {
 							color.Red(err.Error())
+							return nil
 						}
 
 						privateKeyEncrypted, err := getPrivateKey()
