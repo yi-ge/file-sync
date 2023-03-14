@@ -1,9 +1,9 @@
-//go:build windows
-
 package main
 
 import (
+	"fmt"
 	"os/user"
+	"path/filepath"
 
 	"github.com/yi-ge/file-sync/utils"
 )
@@ -19,7 +19,11 @@ func fsInit() error {
 	}
 	homeDir := u.HomeDir
 
-	workDir = homeDir + "\\.file-sync"
+	if homeDir == "" {
+		return fmt.Errorf("could not find home directory")
+	}
+
+	workDir = filepath.Join(homeDir, ".file-sync")
 
 	utils.MakeDirIfNotExist(workDir)
 
@@ -27,17 +31,17 @@ func fsInit() error {
 }
 
 func getConfigPath() string {
-	return workDir + "\\config"
+	return filepath.Join(workDir, "config")
 }
 
 func getCachePath() string {
-	return workDir + "\\cache.json"
+	return filepath.Join(workDir, "cache.json")
 }
 
 func getDataPath() string {
-	return workDir + "\\data.json"
+	return filepath.Join(workDir, "data.json")
 }
 
 func getPathSplitStr() string {
-	return "\\"
+	return string(filepath.Separator)
 }
