@@ -24,10 +24,10 @@ const (
 " >config/auto_config.go
 
 if [ "$(uname)" == "Darwin" ]; then
-  alias sed='gsed'
+  gsed -i 's/isDev[[:space:]]=[[:space:]]os\.Getenv("GO_ENV")[[:space:]]==[[:space:]]"development"/isDev = false/g' main.go
+else
+  sed -i 's/isDev[[:space:]]=[[:space:]]os\.Getenv("GO_ENV")[[:space:]]==[[:space:]]"development"/isDev = false/g' main.go
 fi
-
-sed -i 's/isDev[[:space:]]=[[:space:]]os\.Getenv("GO_ENV")[[:space:]]==[[:space:]]"development"/isDev = false/g' main.go
 
 if [ ! -d bin ]; then
   mkdir bin
@@ -62,7 +62,11 @@ else
   exit 1
 fi
 
-sed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = os.Getenv("GO_ENV") == "development"/g' main.go
+if [ "$(uname)" == "Darwin" ]; then
+  gsed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = os.Getenv("GO_ENV") == "development"/g' main.go
+else
+  sed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = os.Getenv("GO_ENV") == "development"/g' main.go
+fi
 
 if [ "$1" == "--release" ]; then
   # Ensure GitHub CLI is installed
