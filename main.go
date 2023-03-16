@@ -838,32 +838,28 @@ func (p *program) Start(s service.Service) error {
 							Name:  "enable",
 							Usage: "set to boot service",
 							Action: func(cCtx *cli.Context) error {
-								s.Install()
-								return nil
+								return s.Install()
 							},
 						},
 						{
 							Name:  "disable",
 							Usage: "disable the service",
 							Action: func(cCtx *cli.Context) error {
-								s.Uninstall()
-								return nil
+								return s.Uninstall()
 							},
 						},
 						{
 							Name:  "start",
 							Usage: "start the file sync service",
 							Action: func(cCtx *cli.Context) error {
-								s.Start()
-								return nil
+								return s.Start()
 							},
 						},
 						{
 							Name:  "stop",
 							Usage: "stop the file sync service",
 							Action: func(cCtx *cli.Context) error {
-								s.Stop()
-								return nil
+								return s.Stop()
 							},
 						},
 						{
