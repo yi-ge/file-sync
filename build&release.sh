@@ -55,8 +55,8 @@ elif [ "$1" == "--release" ]; then
   build linux mips64le
   build linux mips GOMIPS=softfloat
   build linux mipsle GOMIPS=softfloat
-  build windows 386 .exe
-  build windows amd64 .exe
+  build windows 386 "" .exe
+  build windows amd64 "" .exe
 else
   echo "Invalid argument. Use '--build' to build only, or '--release' to create a release."
   exit 1
