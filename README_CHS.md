@@ -112,25 +112,25 @@ file-sync add <file id> <file path>
 ### 设置为开机自启服务
 
 ```bash
-file-sync service --enable
+file-sync service enable
 ```
 
 ### 禁用开机自启服务
 
 ```bash
-file-sync service --disable
+file-sync service disable
 ```
 
 ### 启动同步服务
 
 ```bash
-file-sync service --start
+file-sync service start
 ```
 
 ### 关闭同步服务
 
 ```bash
-file-sync service --stop
+file-sync service stop
 ```
 
 ### 移除文件同步项

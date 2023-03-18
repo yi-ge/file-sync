@@ -110,25 +110,25 @@ file-sync add <file id> <file path>
 ### Set as boot-up service
 
 ```bash
-file-sync service --enable
+file-sync service enable
 ```
 
 ### Disable boot-up service
 
 ```bash
-file-sync service --disable
+file-sync service disable
 ```
 
 ### Turn on synchronization service
 
 ```bash
-file-sync service --start
+file-sync service start
 ```
 
 ### Turn off synchronization services
 
 ```bash
-file-sync service --stop
+file-sync service stop
 ```
 
 ### Remove file sync item
