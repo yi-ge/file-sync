@@ -101,6 +101,8 @@ file-sync add --name profile --machineId 123 /root/.profile
 
 Configure the device with `machineId` as "123", add `/root/.profile` to the file sync item, and display the file configuration name as `profile`.
 
+If the `~/.file-sync` folder is removed directly without removing the device, the device cannot be registered again to ensure data security unless it is removed from other devices in the same account.
+
 ### Add a file sync item that already exists
 
 ```bash
