@@ -1,0 +1,64 @@
+name: Go Test and Badge
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  go_test_badge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Go 1.20
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Run Go tests
+        run: go test ./... -json > test_output.txt
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Parse test results
+        id: test-results
+        run: |
+          jq -n --slurpfile tests test_output.txt '{ "tests": [ $tests[] | select(.Action=="run") ] | length, "success": [ $tests[] | select(.Action=="pass") ] | length }' > test_results.json
+          echo "::set-output name=json::$(cat test_results.json)"
+
+      - name: Set badge color
+        run: |
+          case ${{ fromJSON( steps.test-results.outputs.json ).success }} in
+            ${{ fromJSON( steps.test-results.outputs.json ).tests }})
+              echo "BADGE_COLOR=31c653" >> $GITHUB_ENV
+              ;;
+            0)
+              echo "BADGE_COLOR=800000" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "BADGE_COLOR=696969" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Create badge
+        uses: emibcn/badge-action@d6f51ff11b5c3382b3b88689ae2d6db22d9737d1
+        with:
+          label: Tests
+          status: '${{ fromJSON( steps.test-results.outputs.json ).success }} / ${{ fromJSON( steps.test-results.outputs.json ).tests }}'
+          color: ${{ env.BADGE_COLOR }}
+          style: flat
+          path: badge.svg
+
+      - name: Upload badge to Gist
+        if: >
+          github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main' ||
+          github.event_name != 'workflow_run' && github.ref == 'refs/heads/main'
+        uses: andymckay/append-gist-action@1fbfbbce708a39bd45846f0955ed5521f2099c6d
+        with:
+          token: ${{ secrets.GIST_TOKEN }}
+          gistURL: https://gist.githubusercontent.com/yi-ge/535b9e71df85ad17d175c184f258b40a
+          file: badge.svg
