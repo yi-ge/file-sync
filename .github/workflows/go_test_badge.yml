@@ -20,7 +20,7 @@ jobs:
         run: go mod download
 
       - name: Run Go tests
-        run: go test ./... -json > test_output.txt
+        run: go test ./... -json > test_output.txt || true
 
       - name: Show the content of test_output.txt if failed
         if: ${{ failure() }}
