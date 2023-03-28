@@ -69,19 +69,19 @@ func WriteByteFile(path string, content []byte, mode int, overwrite bool) (bool,
 	}
 
 	fileCheck, err := FileExists(path)
-	check(err)
+	Check(err)
 
 	// If not, create one with a starting digit
 	if !fileCheck {
 		err = os.WriteFile(path, content, fileMode)
-		check(err)
+		Check(err)
 		return true, err
 	}
 
 	// If the file exists and we want to overwrite it
 	if fileCheck && overwrite {
 		err = os.WriteFile(path, content, fileMode)
-		check(err)
+		Check(err)
 		return true, err
 	}
 	return false, nil

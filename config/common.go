@@ -14,8 +14,3 @@ func Instance() *Config {
 		})
 	return cfg
 }
-
-// GetSystemConfig - Export System Config
-func GetSystemConfig() SystemConfig {
-	return SConfig
-}

@@ -16,11 +16,11 @@ func AESMACEncryptBytes(bytesIn []byte, passphrase string) []byte {
 
 	// Create an AES Cipher
 	block, err := aes.NewCipher([]byte(targetPassHash))
-	check(err)
+	Check(err)
 
 	// Create a new gcm block container
 	gcm, err := cipher.NewGCM(block)
-	check(err)
+	Check(err)
 
 	// Never use more than 2^32 random nonces with a given key because of the risk of repeat.
 	nonce := make([]byte, gcm.NonceSize())

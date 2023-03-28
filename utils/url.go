@@ -1,17 +1,30 @@
 package utils
 
 import (
+	"errors"
 	"net/url"
 )
 
 func CheckURL(urlStr string) error {
-	_, err := url.ParseRequestURI(urlStr)
+	obj, err := url.Parse(urlStr)
+
+	if obj.Scheme == "" {
+		return errors.New("missing scheme")
+	}
+
+	if obj.Host == "" {
+		return errors.New("missing host")
+	}
+
 	if err != nil {
 		return err
 	}
-	url, err := url.Parse(urlStr)
-	if err != nil || url.Scheme == "" || url.Host == "" {
+
+	_, err = url.ParseRequestURI(urlStr)
+
+	if err != nil {
 		return err
 	}
+
 	return nil
 }

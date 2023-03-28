@@ -6,17 +6,7 @@ type Config struct {
 	version string
 }
 
-// SystemConfig - Export System Config struct
-type SystemConfig struct {
-	LogPath  string
-	ExePath  string
-	WorkPath string
-}
-
 var cfg *Config
-
-// SConfig - Export System Config
-var SConfig SystemConfig
 
 // setName - Set the name
 func (p *Config) setName(name string) {
