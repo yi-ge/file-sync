@@ -18,6 +18,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
+      - name: Install dependencies
+        run: go mod download
+
       - name: Run Go tests
         run: go test ./... -json > test_output.txt
 
