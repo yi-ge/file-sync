@@ -80,11 +80,6 @@ if [ "$1" == "--release" ]; then
   GITHUB_USER="file-sync"
   GITHUB_REPO="yi-ge"
 
-  # Check if the git repository is clean
-  if ! git diff-index --quiet HEAD --; then
-    echo "Error: Your git repository contains uncommitted changes. Please commit or stash them before proceeding."
-    exit 1
-  fi
   # Create a release tag
   TAG_NAME="v${VERSION}"
   TAG_MESSAGE="Release ${NAME} ${TAG_NAME}"
