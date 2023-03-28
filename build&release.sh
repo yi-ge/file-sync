@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=0.1.0
+VERSION=0.1.1
 NAME=file-sync
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -24,9 +24,9 @@ const (
 " >config/auto_config.go
 
 if [ "$(uname)" == "Darwin" ]; then
-  gsed -i 's/isDev[[:space:]]=[[:space:]]os\.Getenv("GO_ENV")[[:space:]]==[[:space:]]"development"/isDev = false/g' main.go
+  gsed -i 's/isDev[[:space:]]=[[:space:]]true/isDev = false/g' main.go
 else
-  sed -i 's/isDev[[:space:]]=[[:space:]]os\.Getenv("GO_ENV")[[:space:]]==[[:space:]]"development"/isDev = false/g' main.go
+  sed -i 's/isDev[[:space:]]=[[:space:]]true/isDev = false/g' main.go
 fi
 
 if [ ! -d bin ]; then
@@ -63,9 +63,9 @@ else
 fi
 
 if [ "$(uname)" == "Darwin" ]; then
-  gsed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = os.Getenv("GO_ENV") == "development"/g' main.go
+  gsed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = true/g' main.go
 else
-  sed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = os.Getenv("GO_ENV") == "development"/g' main.go
+  sed -i 's/isDev[[:space:]]=[[:space:]]false/isDev = true/g' main.go
 fi
 
 if [ "$1" == "--release" ]; then
