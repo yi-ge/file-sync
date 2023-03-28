@@ -23,7 +23,7 @@ The design principle of `file-sync`: The server is untrustworthy, the client (lo
 ## Install
 
 ```bash
-go install yi-ge/file-sync
+curl -sSL https://file-sync.yizcore.xyz/setup.sh | bash
 ```
 
 ## Usage
@@ -115,6 +115,8 @@ file-sync add <file id> <file path>
 file-sync service enable
 ```
 
+Note: The install script will automatically set the boot-up service.
+
 ### Disable boot-up service
 
 ```bash
@@ -126,6 +128,8 @@ file-sync service disable
 ```bash
 file-sync service start
 ```
+
+Note: The install script will automatically start the synchronization service.
 
 ### Turn off synchronization services
 

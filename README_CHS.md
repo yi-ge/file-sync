@@ -25,7 +25,7 @@
 ## 安装
 
 ```bash
-go install yi-ge/file-sync
+curl -sSL https://file-sync.yizcore.xyz/setup.sh | bash
 ```
 
 ## 使用
@@ -117,6 +117,8 @@ file-sync add <file id> <file path>
 file-sync service enable
 ```
 
+注意：安装脚本默认已经设置为开机自启服务。
+
 ### 禁用开机自启服务
 
 ```bash
@@ -128,6 +130,8 @@ file-sync service disable
 ```bash
 file-sync service start
 ```
+
+注意：安装脚本默认已经开启服务。
 
 ### 关闭同步服务
 
