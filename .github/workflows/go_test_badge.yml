@@ -32,7 +32,7 @@ jobs:
       - name: Parse test results
         id: test-results
         run: |
-          jq -n --slurpfile tests test_output.txt '{ "tests": [ $tests[] | select(.Action=="run") ] | length, "success": [ $tests[] | select(.Action=="pass") ] | length }' > test_results.json
+          jq -c -n --slurpfile tests test_output.txt '{ "tests": [ $tests[] | select(.Action=="run") ] | length, "success": [ $tests[] | select(.Action=="pass") ] | length }' > test_results.json
           echo "json=$(cat test_results.json)" >> $GITHUB_OUTPUT
 
       - name: Show the content of test_results.json if failed
