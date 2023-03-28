@@ -6,30 +6,49 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
 
 func main() {
-	testServers := []string{"TencentHK", "AliHK"}
+	testServers := [][]string{
+		{"TencentHK", "AliHK"},
+		{"AliHK", "TencentHK"},
+	}
+
 	email := "a@wyr.me"
 	password := "123456"
 
-	for _, server := range testServers {
-		installFileSync(server)
-		login(server, email, password)
+	for _, serverPair := range testServers {
+		server1 := serverPair[0]
+		server2 := serverPair[1]
 
-		filename := createFile(server)
-		fileID := addFileSync(server, filename)
+		installFileSync(server1)
+		login(server1, email, password)
 
-		listOutput := listFiles(server)
-		fileID = getFileIDFromListOutput(listOutput)
+		installFileSync(server2)
+		login(server2, email, password)
 
-		addFile(server, fileID)
-		checkFileContent(server, filename)
+		filename := createFile(server1)
+		fileID := addFileSync(server1, filename)
 
+		listOutput := listFiles(server2)
+		fileID2 := getFileIDFromListOutput(listOutput)
+
+		if fileID != fileID2 {
+			log.Fatalf("File ID mismatch: %s != %s", fileID, fileID2)
+		}
+
+		addFile(server2, fileID)
+		time.Sleep(1 * time.Second)
+		checkFileContent(server1, filename)
+		checkFileContent(server2, filename)
+
+		modifyFile(server1, filename)
 		time.Sleep(3 * time.Second)
-		checkFileContent(server, filename)
+		checkFileContent(server1, filename)
+		checkFileContent(server2, filename)
 	}
 }
 
@@ -58,23 +77,24 @@ func addFileSync(server, filename string) string {
 	output := runCommand(cmd)
 
 	fileID := extractFileID(output)
+	if fileID == "" {
+		log.Fatalf("Failed to extract file ID from output: %s", output)
+	}
+	log.Println("File ID:", fileID)
 	return fileID
 }
 
 func extractFileID(output string) string {
-	prefix := "ID:"
-	start := strings.Index(output, prefix)
-	if start == -1 {
-		return ""
+	re := regexp.MustCompile(`ID:([^\s\)]+)`) // 匹配 "ID:" 后面的非空格和非右括号字符
+
+	match := re.FindStringSubmatch(output)
+
+	if len(match) > 1 {
+		id := match[1]
+		return strings.TrimSpace(id)
 	}
 
-	start += len(prefix)
-	end := strings.Index(output[start:], ")")
-	if end == -1 {
-		return ""
-	}
-
-	return strings.TrimSpace(output[start : start+end])
+	return ""
 }
 
 func listFiles(server string) string {
@@ -122,4 +142,10 @@ func runCommand(cmd string) string {
 	}
 
 	return strings.TrimSpace(string(output))
+}
+
+func modifyFile(server, filename string) {
+	newContent := generateRandomString(32)
+	cmd := fmt.Sprintf(`ssh %s "echo '%s' > %s"`, server, newContent, filename)
+	runCommand(cmd)
 }
