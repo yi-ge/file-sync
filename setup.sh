@@ -79,8 +79,8 @@ file-sync -v || {
 
 echo "Registering file-sync as a service..."
 sudo file-sync service enable || {
-  echo "Failed to register file-sync as a service"
-  exit 1
+  echo "Failed to register file-sync as a service, but continuing anyway."
+  true
 }
 
 echo "Starting file-sync service..."

@@ -1,56 +1,125 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
-	"math/rand"
 	"os/exec"
 	"strings"
 	"time"
 )
 
 func main() {
-	// 配置两台服务器的 SSH 信息
-	servers := []string{"TencentHK", "AliHK"}
+	testServers := []string{"TencentHK", "AliHK"}
+	email := "a@wyr.me"
+	password := "123456"
 
-	// 分别 SSH 到两台服务器并安装 file-sync
-	for _, server := range servers {
-		cmd := exec.Command("ssh", server, "curl -sSL https://file-sync.yizcore.xyz/setup.sh | bash")
-		if err := cmd.Run(); err != nil {
-			log.Fatalf("Failed to install file-sync on %s: %v", server, err)
+	for _, server := range testServers {
+		installFileSync(server)
+		login(server, email, password)
+
+		filename := createFile(server)
+		fileID := addFileSync(server, filename)
+
+		listOutput := listFiles(server)
+		fileID = getFileIDFromListOutput(listOutput)
+
+		addFile(server, fileID)
+		checkFileContent(server, filename)
+
+		time.Sleep(3 * time.Second)
+		checkFileContent(server, filename)
+	}
+}
+
+func installFileSync(server string) {
+	cmd := fmt.Sprintf(`ssh %s "curl -sSL https://file-sync.yizcore.xyz/setup.sh | bash"`, server)
+	runCommand(cmd)
+}
+
+func login(server, email, password string) {
+	cmd := fmt.Sprintf(`ssh %s "printf '%s\n%s\n' | file-sync --login %s"`, server, password, server, email)
+	runCommand(cmd)
+}
+
+func createFile(server string) string {
+	filename := fmt.Sprintf("/tmp/%d.txt", time.Now().Unix())
+	content := generateRandomString(32)
+
+	cmd := fmt.Sprintf(`ssh %s "echo '%s' > %s"`, server, content, filename)
+	runCommand(cmd)
+
+	return filename
+}
+
+func addFileSync(server, filename string) string {
+	cmd := fmt.Sprintf(`ssh %s "printf '\n' | file-sync add %s"`, server, filename)
+	output := runCommand(cmd)
+
+	fileID := extractFileID(output)
+	return fileID
+}
+
+func extractFileID(output string) string {
+	prefix := "ID:"
+	start := strings.Index(output, prefix)
+	if start == -1 {
+		return ""
+	}
+
+	start += len(prefix)
+	end := strings.Index(output[start:], ")")
+	if end == -1 {
+		return ""
+	}
+
+	return strings.TrimSpace(output[start : start+end])
+}
+
+func listFiles(server string) string {
+	cmd := fmt.Sprintf(`ssh %s "file-sync list"`, server)
+	return runCommand(cmd)
+}
+
+func getFileIDFromListOutput(output string) string {
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "test.json") {
+			parts := strings.Fields(line)
+			return parts[2]
 		}
 	}
+	return ""
+}
 
-	// 分别 SSH 到两台服务器并使用 email 和密码进行登录
-	for _, server := range servers {
-		cmd := exec.Command("ssh", server, "printf '123456\n' | file-sync --login a@wyr.me")
-		if err := cmd.Run(); err != nil {
-			log.Fatalf("Failed to login on %s: %v", server, err)
-		}
-	}
+func addFile(server, fileID string) {
+	cmd := fmt.Sprintf(`ssh %s "printf '\n' | file-sync add %s"`, server, fileID)
+	runCommand(cmd)
+}
 
-	// 在第一台服务器上创建文件并写入随机内容
-	timestamp := time.Now().Unix()
-	filename := fmt.Sprintf("/tmp/%d.txt", timestamp)
-	content := fmt.Sprintf("Random content: %d", rand.Int())
+func checkFileContent(server, filename string) {
+	cmd := fmt.Sprintf(`ssh %s "cat %s"`, server, filename)
+	content := runCommand(cmd)
+	fmt.Printf("File content on %s: %s\n", server, content)
+}
 
-	cmd := exec.Command("ssh", servers[0], fmt.Sprintf("echo '%s' > %s", content, filename))
-	if err := cmd.Run(); err != nil {
-		log.Fatalf("Failed to create file on %s: %v", servers[0], err)
-	}
-
-	// 在第一台服务器上执行 file-sync add
-	cmd = exec.Command("ssh", servers[0], fmt.Sprintf("file-sync add %s", filename))
-	if err := cmd.Run(); err != nil {
-		log.Fatalf("Failed to add file on %s: %v", servers[0], err)
-	}
-
-	// 在第二台服务器上执行 file-sync list
-	cmd = exec.Command("ssh", servers[1], "file-sync list")
-	output, err := cmd.Output()
+func generateRandomString(length int) string {
+	bytes := make([]byte, length/2)
+	_, err := rand.Read(bytes)
 	if err != nil {
-		log.Fatalf("Failed to list files on %s: %v", servers[1], err)
+		log.Fatal(err)
+	}
+	return hex.EncodeToString(bytes)
+}
+
+func runCommand(cmd string) string {
+	fmt.Printf("Running command: %s\n", cmd)
+
+	output, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	if err != nil {
+		log.Fatalf("Command failed: %s\nError: %v\nOutput: %s", cmd, err, output)
 	}
 
-	fmt.Println("Files on the second server:", strings.TrimSpace(string(output)))
+	return strings.TrimSpace(string(output))
 }
