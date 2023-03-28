@@ -22,6 +22,10 @@ jobs:
       - name: Run Go tests
         run: go test ./... -json > test_output.txt
 
+      - name: Show the content of test_output.txt if failed
+        if: ${{ failure() }}
+        run: cat test_output.txt
+
       - name: Install jq
         run: sudo apt-get install -y jq
 
