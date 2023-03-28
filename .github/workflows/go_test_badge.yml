@@ -33,8 +33,11 @@ jobs:
         id: test-results
         run: |
           jq -n --slurpfile tests test_output.txt '{ "tests": [ $tests[] | select(.Action=="run") ] | length, "success": [ $tests[] | select(.Action=="pass") ] | length }' > test_results.json
-          echo "{name}=json" >> $GITHUB_OUTPUT
-          echo "{value}=$(cat test_results.json)" >> $GITHUB_OUTPUT
+          echo "json=$(cat test_results.json)" >> $GITHUB_OUTPUT
+
+      - name: Show the content of test_results.json if failed
+        if: ${{ failure() }}
+        run: cat test_results.json
 
       - name: Set badge color
         run: |
