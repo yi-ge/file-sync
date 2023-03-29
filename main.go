@@ -562,7 +562,11 @@ func (p *program) Start(s service.Service) error {
 									return nil
 								}
 							}
-							utils.MakeDirIfNotExist(filePath)
+							filePath, err = utils.CreateDirectoryIfNotExists(filePath, fileName)
+							if err != nil {
+								color.Red(err.Error())
+								return nil
+							}
 
 							json, err := fileDownload(fileId, data)
 							if err != nil {

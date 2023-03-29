@@ -103,3 +103,38 @@ func FileSHA256(filePath string) (string, error) {
 	hashValue = hex.EncodeToString(hashInBytes)
 	return hashValue, nil
 }
+
+func CreateDirectoryIfNotExists(filePath, filename string) (string, error) {
+	// filePath is a file path or a directory
+	info, err := os.Stat(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// File or directory does not exist, create directory
+			err = os.MkdirAll(filePath, 0755)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			return "", err
+		}
+	} else if !info.IsDir() {
+		// If it is a file
+		dir := filepath.Dir(filePath) // Get the path to the folder where the file is located
+		_, err := os.Stat(dir)
+		if os.IsNotExist(err) {
+			// Folder does not exist, create folder
+			err = os.MkdirAll(dir, 0755)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+
+	// If filePath is a directory
+	if info != nil && info.IsDir() {
+		newFilePath := filepath.Join(filePath, filename) // Add the filename variable
+		return newFilePath, nil
+	}
+
+	return filePath, nil
+}
