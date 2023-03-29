@@ -171,7 +171,7 @@ file-sync remove --machineId <machine id> <file id>
 
 答: `file-sync`依赖`fsnotify`，`fsnotify`需要底层操作系统的支持才能工作。目前的NFS和SMB协议没有为文件通知提供网络级支持，/proc和/sys虚拟文件系统也没有。
 
-## 使用自托管服务器
+## 使用自托管服务器部署 （可选）
 
 可以选择借助Docker或者自行搭建PHP运行环境在自己的服务器中部署。
 
@@ -487,6 +487,34 @@ Return：
 详细环境变量配置参考根目录下的`.env.example`文件，以及`server/php/.env.example`文件。
 
 请设置`PHP_CLI_SERVER_WORKERS`环境变量为大于`1`的数值以便测试多线程环境下PHP的工作状态（依赖PHP CLI version >= 7.4.0，如果使用低版本PHP进行开发，请配置`LNMP`或`LAMP`环境）。
+
+</p>
+</details>
+
+## 测试
+
+<details><summary>CLICK ME</summary>
+<p>
+
+### 单元测试
+
+```bash
+go test ./...
+```
+
+### 集成测试
+
+首先，请确保您的服务器上安装了 `expect`。在大多数 Linux 发行版中，可以使用以下命令安装：
+
+```sh
+sudo apt-get install expect -y
+```
+
+在`test`文件夹中，运行以下命令：
+
+```bash
+go run .
+```
 
 </p>
 </details>

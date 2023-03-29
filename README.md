@@ -169,7 +169,7 @@ A: This project is designed to synchronize a single configuration file, and you 
 
 A: `file-sync` require `fsnotify`, `fsnotify` requires support from underlying OS to work. The current NFS and SMB protocols does not provide network level support for file notifications, and neither do the /proc and /sys virtual filesystems.
 
-## Use self-hosted server
+## Use self-hosted server deploy (optional)
 
 You can choose to deploy it in your own server with the Docker or build your own PHP runtime.
 
@@ -288,6 +288,34 @@ Install PHP 5.4+ and MySQL 5.4+, enable `shmop` extension, configure `Zend Debug
 Refer to the `.env.example` file in the root directory and the `server/php/.env.example` file for detailed environment variable configuration. Configure the `.htaccess` file according to the `Use self-hosted server` above.
 
 Please set the `PHP_CLI_SERVER_WORKERS` environment variable to a value greater than `1` in order to test the working state of PHP in a Multi-threaded environment (relying on PHP CLI version >= 7.4.0, if you are developing with a lower version of PHP, please configure the `LNMP` or `LAMP` environment).
+
+</p>
+</details>
+
+## Testing
+
+<details><summary>CLICK ME</summary>
+<p>
+
+### Unit tests
+
+```bash
+go test . /...
+```
+
+### Integration tests
+
+First, make sure you have `expect` installed on your server. in most Linux distributions, it can be installed using the following command:
+
+```sh
+sudo apt-get install expect -y
+```
+
+In the ``test`` folder, run the following command:
+
+```bash
+go run .
+```
 
 </p>
 </details>

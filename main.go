@@ -53,7 +53,7 @@ func (p *program) Start(s service.Service) error {
 					Usage: "login by email",
 					Action: func(ctx *cli.Context, email string) error {
 						prompt := &survey.Password{
-							Message: "Please type your password",
+							Message: "Enter your password: ",
 						}
 						survey.AskOne(prompt, &password)
 						hostname, err := os.Hostname()
@@ -63,7 +63,7 @@ func (p *program) Start(s service.Service) error {
 
 						machineName := ""
 						prompt2 := &survey.Input{
-							Message: "Please type your device name",
+							Message: "Enter a name for this machine: ",
 							Default: hostname,
 						}
 						survey.AskOne(prompt2, &machineName)

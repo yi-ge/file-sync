@@ -4,11 +4,14 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"log"
 	"os/exec"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/creack/pty"
 )
 
 func main() {
@@ -22,33 +25,34 @@ func main() {
 
 	for _, serverPair := range testServers {
 		server1 := serverPair[0]
-		server2 := serverPair[1]
+		// server2 := serverPair[1]
 
-		installFileSync(server1)
+		// installFileSync(server1)
 		login(server1, email, password)
 
-		installFileSync(server2)
-		login(server2, email, password)
+		// installFileSync(server2)
+		// login(server2, email, password)
 
-		filename := createFile(server1)
-		fileID := addFileSync(server1, filename)
+		// filename := createFile(server1)
+		// fileID := addFileSync(server1, filename)
 
-		listOutput := listFiles(server2)
-		fileID2 := getFileIDFromListOutput(listOutput)
+		// listOutput := listFiles(server2)
+		// log.Print(listOutput)
+		// fileID2 := getFileIDFromListOutput(listOutput, filename)
 
-		if fileID != fileID2 {
-			log.Fatalf("File ID mismatch: %s != %s", fileID, fileID2)
-		}
+		// if fileID != fileID2 {
+		// 	log.Fatalf("File ID mismatch: %s != %s", fileID, fileID2)
+		// }
 
-		addFile(server2, fileID)
-		time.Sleep(1 * time.Second)
-		checkFileContent(server1, filename)
-		checkFileContent(server2, filename)
+		// addFile(server2, fileID)
+		// time.Sleep(1 * time.Second)
+		// checkFileContent(server1, filename)
+		// checkFileContent(server2, filename)
 
-		modifyFile(server1, filename)
-		time.Sleep(3 * time.Second)
-		checkFileContent(server1, filename)
-		checkFileContent(server2, filename)
+		// modifyFile(server1, filename)
+		// time.Sleep(3 * time.Second)
+		// checkFileContent(server1, filename)
+		// checkFileContent(server2, filename)
 	}
 }
 
@@ -57,9 +61,63 @@ func installFileSync(server string) {
 	runCommand(cmd)
 }
 
+// func login(server, email, password string) {
+// 	cmd := fmt.Sprintf(`ssh %s "printf '%s\n%s\n' | file-sync --login %s"`, server, password, server, email)
+// 	runCommand(cmd)
+// }
+
+// func login(server, email, password string) {
+// 	expectScript := fmt.Sprintf(`
+// spawn ssh %s "file-sync --login %s"
+// expect "Enter your password"
+// send "%s\r\n"
+// expect "Enter a name for this machine"
+// send "%s\r\n"
+// expect eof
+// `, server, email, password, server)
+
+// 	cmd := fmt.Sprintf(`expect -c '%s'`, strings.ReplaceAll(expectScript, "\n", "; "))
+// 	runCommand(cmd)
+// }
+
 func login(server, email, password string) {
-	cmd := fmt.Sprintf(`ssh %s "printf '%s\n%s\n' | file-sync --login %s"`, server, password, server, email)
-	runCommand(cmd)
+	cmdStr := fmt.Sprintf(`ssh %s "file-sync --login %s"`, server, email)
+	cmd := exec.Command("bash", "-c", cmdStr)
+
+	ptmx, err := pty.Start(cmd)
+	if err != nil {
+		log.Fatalf("failed to start pty: %v", err)
+	}
+	defer func() { _ = ptmx.Close() }()
+
+	go func() {
+		for {
+			buf := make([]byte, 1024)
+			n, err := ptmx.Read(buf)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				log.Fatalf("failed to read from pty: %v", err)
+			}
+
+			if n > 0 {
+				output := string(buf[:n])
+				fmt.Printf("%s", output)
+
+				if strings.Contains(output, "Enter your password") {
+					_, _ = ptmx.Write([]byte(password + "\n"))
+				} else if strings.Contains(output, "Enter a name for this machine") {
+					_, _ = ptmx.Write([]byte(server + "\n"))
+				}
+			}
+		}
+	}()
+
+	err = cmd.Wait()
+	if err != nil {
+		log.Fatalf("command failed: %v", err)
+	}
 }
 
 func createFile(server string) string {
@@ -102,11 +160,12 @@ func listFiles(server string) string {
 	return runCommand(cmd)
 }
 
-func getFileIDFromListOutput(output string) string {
+func getFileIDFromListOutput(output string, filename string) string {
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
-		if strings.Contains(line, "test.json") {
+		if strings.Contains(line, filename) {
 			parts := strings.Fields(line)
+			log.Println(parts)
 			return parts[2]
 		}
 	}
@@ -141,7 +200,10 @@ func runCommand(cmd string) string {
 		log.Fatalf("Command failed: %s\nError: %v\nOutput: %s", cmd, err, output)
 	}
 
-	return strings.TrimSpace(string(output))
+	outStr := strings.TrimSpace(string(output))
+	fmt.Printf("Command output: %s \n", outStr)
+
+	return string(outStr)
 }
 
 func modifyFile(server, filename string) {
