@@ -504,12 +504,6 @@ go test ./...
 
 ### 集成测试
 
-首先，请确保您的服务器上安装了 `expect`。在大多数 Linux 发行版中，可以使用以下命令安装：
-
-```sh
-sudo apt-get install expect -y
-```
-
 在`test`文件夹中，运行以下命令：
 
 ```bash

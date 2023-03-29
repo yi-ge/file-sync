@@ -52,23 +52,33 @@ func (p *program) Start(s service.Service) error {
 					Value: "",
 					Usage: "login by email",
 					Action: func(ctx *cli.Context, email string) error {
-						prompt := &survey.Password{
-							Message: "Enter your password: ",
-						}
-						survey.AskOne(prompt, &password)
-						hostname, err := os.Hostname()
-						if err != nil {
-							panic(err)
-						}
-
 						machineName := ""
-						prompt2 := &survey.Input{
-							Message: "Enter a name for this machine: ",
-							Default: hostname,
-						}
-						survey.AskOne(prompt2, &machineName)
+						if ctx.NArg() == 2 {
+							password = ctx.Args().Get(1)
+							machineName = ctx.Args().Get(2)
+						} else {
+							if ctx.NArg() == 1 {
+								password = ctx.Args().Get(1)
+							} else {
+								prompt := &survey.Password{
+									Message: "Enter your password: ",
+								}
+								survey.AskOne(prompt, &password)
+							}
 
-						err = login(email, password, machineName)
+							hostname, err := os.Hostname()
+							if err != nil {
+								panic(err)
+							}
+
+							prompt2 := &survey.Input{
+								Message: "Enter a name for this machine: ",
+								Default: hostname,
+							}
+							survey.AskOne(prompt2, &machineName)
+						}
+
+						err := login(email, password, machineName)
 						if err != nil {
 							color.Red("Login failure.")
 							color.Red(err.Error())
@@ -942,7 +952,7 @@ func main() {
 	// flag.Parse()
 
 	// Do't delete next line.
-	isDev = true
+	isDev = false
 	if isDev {
 		hasEnvFile, err := utils.FileExists(".env")
 		if err != nil {

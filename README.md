@@ -305,12 +305,6 @@ go test . /...
 
 ### Integration tests
 
-First, make sure you have `expect` installed on your server. in most Linux distributions, it can be installed using the following command:
-
-```sh
-sudo apt-get install expect -y
-```
-
 In the ``test`` folder, run the following command:
 
 ```bash
