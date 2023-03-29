@@ -952,7 +952,7 @@ func main() {
 	// flag.Parse()
 
 	// Do't delete next line.
-	isDev = false
+	isDev = true
 	if isDev {
 		hasEnvFile, err := utils.FileExists(".env")
 		if err != nil {
