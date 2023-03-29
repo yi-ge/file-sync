@@ -34,21 +34,26 @@ func main() {
 		fileID := addFileSync(server1, filename)
 
 		listOutput := listFiles(server2)
-		log.Print(listOutput)
 
 		if !hasFileIDFromListOutput(listOutput, filename, fileID) {
 			log.Fatalf("File ID %s not found in list output", fileID)
 		}
 
-		addFile(server2, fileID)
+		addExistedFile(server2, fileID, filename)
 		time.Sleep(1 * time.Second)
-		checkFileContent(server1, filename)
-		checkFileContent(server2, filename)
+		if checkFileContent(server1, filename) != checkFileContent(server2, filename) {
+			log.Fatalf("File content not synced")
+		}
 
 		modifyFile(server1, filename)
 		time.Sleep(3 * time.Second)
-		checkFileContent(server1, filename)
-		checkFileContent(server2, filename)
+		if checkFileContent(server1, filename) != checkFileContent(server2, filename) {
+			log.Fatalf("File content not synced")
+		}
+
+		// Cleanup
+		cleanup(server1, password)
+		cleanup(server2, password)
 	}
 }
 
@@ -112,15 +117,15 @@ func hasFileIDFromListOutput(output string, filename string, fileId string) bool
 	return false
 }
 
-func addFile(server, fileID string) {
-	cmd := fmt.Sprintf(`ssh %s "printf '\n' | file-sync add %s"`, server, fileID)
+func addExistedFile(server, fileID string, filePath string) {
+	cmd := fmt.Sprintf(`ssh %s "printf '\n' | file-sync add %s %s"`, server, fileID, filePath)
 	runCommand(cmd)
 }
 
-func checkFileContent(server, filename string) {
+func checkFileContent(server, filename string) string {
 	cmd := fmt.Sprintf(`ssh %s "cat %s"`, server, filename)
 	content := runCommand(cmd)
-	fmt.Printf("File content on %s: %s\n", server, content)
+	return content
 }
 
 func generateRandomString(length int) string {
@@ -142,6 +147,7 @@ func runCommand(cmd string) string {
 
 	outStr := strings.TrimSpace(string(output))
 	fmt.Print(outStr)
+	fmt.Print("\n")
 
 	return string(outStr)
 }
@@ -150,4 +156,42 @@ func modifyFile(server, filename string) {
 	newContent := generateRandomString(32)
 	cmd := fmt.Sprintf(`ssh %s "echo '%s' > %s"`, server, newContent, filename)
 	runCommand(cmd)
+}
+
+func cleanup(server, password string) {
+	// Stop and disable the file-sync service
+	runCommand(fmt.Sprintf("ssh %s sudo file-sync service stop", server))
+	runCommand(fmt.Sprintf("ssh %s sudo file-sync service disable", server))
+
+	// Check if the file-sync.service file exists
+	checkFileExists := fmt.Sprintf("ssh %s 'if [ -f /etc/systemd/system/multi-user.target.wants/file-sync.service ]; then echo exists; fi'", server)
+	fileExistsOutput := runCommand(checkFileExists)
+	if strings.Contains(fileExistsOutput, "exists") {
+		log.Printf("Warning: file-sync.service file still exists on server %s", server)
+	}
+
+	// Remove the current device
+	runCommand(fmt.Sprintf(`ssh %s "file-sync --remove-device current %s"`, server, password))
+
+	// // Check if cache.json, data.json, .pub.pem, and .priv.pem files still exist
+	// checkFiles := "ls ~/.file-sync/ | grep -E 'cache.json|data.json|.pub.pem|.priv.pem' | tr '\\n' ' '"
+	// checkFilesCmd := fmt.Sprintf("ssh %s '%s'", server, checkFiles)
+	// filesOutput := runCommand(checkFilesCmd)
+	// if len(strings.TrimSpace(filesOutput)) > 0 {
+	// 	log.Printf("Warning: Some files still exist on server %s: %s", server, filesOutput)
+	// }
+
+	// Check if cache.json, data.json, .pub.pem, and .priv.pem files still exist
+	filesToCheck := []string{"cache.json", "data.json", ".pub.pem", ".priv.pem"}
+	for _, file := range filesToCheck {
+		checkFileCmd := fmt.Sprintf("ssh %s 'if [ -f ~/.file-sync/%s ]; then echo exists; fi'", server, file)
+		fileExistsOutput := runCommand(checkFileCmd)
+		if strings.Contains(fileExistsOutput, "exists") {
+			log.Printf("Warning: %s file still exists on server %s", file, server)
+		}
+	}
+
+	// Remove the ~/.file-sync/ directory and /usr/local/bin/file-sync file
+	runCommand(fmt.Sprintf("ssh %s rm -rf ~/.file-sync/", server))
+	runCommand(fmt.Sprintf("ssh %s sudo rm /usr/local/bin/file-sync", server))
 }
