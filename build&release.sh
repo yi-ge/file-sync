@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=0.1.3
+VERSION=0.1.5
 NAME=file-sync
 
 if [ "$(uname)" == "Darwin" ]; then

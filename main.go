@@ -155,6 +155,9 @@ func (p *program) Start(s service.Service) error {
 						s := ""
 						if ctx.NArg() > 0 {
 							s = ctx.Args().Get(0)
+							if ctx.NArg() > 1 {
+								password = ctx.Args().Get(1)
+							}
 						}
 						removeMachineId := ""
 						removeMachineName := ""
@@ -164,7 +167,7 @@ func (p *program) Start(s service.Service) error {
 							return nil
 						}
 
-						if s == "" {
+						if s == "" || s == "current" {
 							removeMachineId = data.MachineId
 							removeMachineName = data.MachineName
 						} else {
@@ -223,20 +226,24 @@ func (p *program) Start(s service.Service) error {
 							return err
 						}
 
-						del := false
-						promptDel := &survey.Confirm{
-							Message: "Are you sure to remove the device (" + removeMachineName + " ID:" + removeMachineId[:10] + ")?",
-						}
-						survey.AskOne(promptDel, &del)
+						if ctx.NArg() < 2 {
+							del := false
+							promptDel := &survey.Confirm{
+								Message: "Are you sure to remove the device (" + removeMachineName + " ID:" + removeMachineId[:10] + ")?",
+							}
+							survey.AskOne(promptDel, &del)
 
-						if !del {
-							return nil
-						}
+							if !del {
+								return nil
+							}
 
-						prompt := &survey.Password{
-							Message: "Please type your password",
+							if password == "" {
+								prompt := &survey.Password{
+									Message: "Enter your password: ",
+								}
+								survey.AskOne(prompt, &password)
+							}
 						}
-						survey.AskOne(prompt, &password)
 
 						machineKey, res := checkPassword(data, password)
 						if res && machineKey != "" {

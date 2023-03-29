@@ -224,6 +224,11 @@ func removeDevice(machineKey string, data Data, removeMachineId string) (string,
 		if err != nil {
 			return "", err
 		}
+
+		err = delCache()
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return removedMachineId, nil

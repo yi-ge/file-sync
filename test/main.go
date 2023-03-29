@@ -35,10 +35,9 @@ func main() {
 
 		listOutput := listFiles(server2)
 		log.Print(listOutput)
-		fileID2 := getFileIDFromListOutput(listOutput, filename)
 
-		if fileID != fileID2 {
-			log.Fatalf("File ID mismatch: %s != %s", fileID, fileID2)
+		if !hasFileIDFromListOutput(listOutput, filename, fileID) {
+			log.Fatalf("File ID %s not found in list output", fileID)
 		}
 
 		addFile(server2, fileID)
@@ -103,16 +102,14 @@ func listFiles(server string) string {
 	return runCommand(cmd)
 }
 
-func getFileIDFromListOutput(output string, filename string) string {
+func hasFileIDFromListOutput(output string, filename string, fileId string) bool {
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
-		if strings.Contains(line, filename) {
-			parts := strings.Fields(line)
-			log.Println(parts)
-			return parts[2]
+		if strings.Contains(line, filename) && strings.Contains(line, fileId) {
+			return true
 		}
 	}
-	return ""
+	return false
 }
 
 func addFile(server, fileID string) {
@@ -144,7 +141,7 @@ func runCommand(cmd string) string {
 	}
 
 	outStr := strings.TrimSpace(string(output))
-	fmt.Printf("Command output: %s \n", outStr)
+	fmt.Print(outStr)
 
 	return string(outStr)
 }
