@@ -24,7 +24,7 @@ func main() {
 		server1 := serverPair[0]
 		server2 := serverPair[1]
 
-		// installFileSync(server1)
+		installFileSync(server1)
 		login(server1, email, password)
 
 		installFileSync(server2)

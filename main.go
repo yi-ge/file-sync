@@ -54,11 +54,11 @@ func (p *program) Start(s service.Service) error {
 					Action: func(ctx *cli.Context, email string) error {
 						machineName := ""
 						if ctx.NArg() == 2 {
-							password = ctx.Args().Get(1)
-							machineName = ctx.Args().Get(2)
+							password = ctx.Args().Get(0)
+							machineName = ctx.Args().Get(1)
 						} else {
 							if ctx.NArg() == 1 {
-								password = ctx.Args().Get(1)
+								password = ctx.Args().Get(0)
 							} else {
 								prompt := &survey.Password{
 									Message: "Enter your password: ",
