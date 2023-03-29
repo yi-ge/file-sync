@@ -575,7 +575,7 @@ func (p *program) Start(s service.Service) error {
 
 							content := json.Get("content").ToString()
 
-							res, err := utils.WriteByteFile(fileName, []byte(content), 0, true)
+							res, err := utils.WriteByteFile(filePath, []byte(content), 0, true)
 							if err != nil {
 								color.Red(err.Error())
 							}
@@ -651,7 +651,7 @@ func (p *program) Start(s service.Service) error {
 						}
 
 						if configs != nil && configs.Size() > 0 {
-							printConfigTable(configs, displayRowSet, true, hiddenLongPath, string(privateKey))
+							printConfigTable(configs, displayRowSet, true, hiddenLongPath, string(privateKey), []byte(data.Verify))
 							if isCache {
 								color.Red("Request server failed, above is cached data!")
 							}

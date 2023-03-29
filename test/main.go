@@ -50,11 +50,11 @@ func main() {
 		if checkFileContent(server1, filename) != checkFileContent(server2, filename) {
 			log.Fatalf("File content not synced")
 		}
-
-		// Cleanup
-		cleanup(server1, password)
-		cleanup(server2, password)
 	}
+
+	// Cleanup
+	cleanup(testServers[0][0], password)
+	cleanup(testServers[0][1], password)
 }
 
 func installFileSync(server string) {
