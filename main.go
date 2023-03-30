@@ -337,28 +337,28 @@ func (p *program) Start(s service.Service) error {
 							sha256          = ""
 						)
 
+						privateKeyEncrypted, err := getPrivateKey()
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						decrypted, privateKey, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+						if err != nil || !decrypted {
+							color.Red((errors.New("secret decrypt error: " + err.Error())).Error())
+							return nil
+						}
+
 						if cCtx.Args().Get(1) != "" {
 							inputArg := cCtx.Args().Get(0)
 							filePath = cCtx.Args().Get(1)
-
-							privateKeyEncrypted, err := getPrivateKey()
-							if err != nil {
-								color.Red(err.Error())
-								return nil
-							}
-
-							privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
-							if err != nil {
-								color.Red(err.Error())
-								return nil
-							}
-
-							decrypted, privateKey, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
-
-							if err != nil || !decrypted {
-								color.Red((errors.New("secret decrypt error: " + err.Error())).Error())
-								return nil
-							}
 
 							configs, err := listConfigs(data)
 							if err != nil {
@@ -573,7 +573,13 @@ func (p *program) Start(s service.Service) error {
 								color.Red(err.Error())
 							}
 
-							content := json.Get("content").ToString()
+							contentEncrypted := json.Get("content").ToString()
+							contentBase64, err := base64.URLEncoding.DecodeString(contentEncrypted)
+							if err != nil {
+								logger.Errorf(err.Error())
+								return nil
+							}
+							content := utils.RsaDecrypt([]byte(contentBase64), privateKey)
 
 							res, err := utils.WriteByteFile(filePath, []byte(content), 0, true)
 							if err != nil {
