@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+// Note: that to perform the integration test,
+// you need to ensure that both servers have been configured with ssh public key login,
+// one with root privileges and one with normal user privileges,
+// so that different scenarios can be covered.
+
 func main() {
 	testServers := [][]string{
 		{"TencentHK", "AliHK"},
