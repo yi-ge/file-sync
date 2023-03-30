@@ -22,8 +22,16 @@ The design principle of `file-sync`: The server is untrustworthy, the client (lo
 
 ## Install
 
+### *unix system (Linux, macOS, BSD, etc.)
+
 ```bash
 curl -sSL https://file-sync.yizcore.xyz/setup.sh | bash
+```
+
+### Windows
+
+```powershell
+iex ((New-Object System.Net.WebClient).DownloadString('https://file-sync.yizcore.xyz/setup.ps1'))
 ```
 
 ## Usage
