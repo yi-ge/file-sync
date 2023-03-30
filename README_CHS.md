@@ -24,8 +24,16 @@
 
 ## 安装
 
+### *unix system (Linux, macOS, BSD, etc.)
+
 ```bash
 curl -sSL https://file-sync.yizcore.xyz/setup.sh | bash
+```
+
+### Windows
+
+```powershell
+iex ((New-Object System.Net.WebClient).DownloadString('https://file-sync.yizcore.xyz/setup.ps1'))
 ```
 
 ## 使用
