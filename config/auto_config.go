@@ -2,6 +2,7 @@
 package config
 
 const (
-	name    = "file-sync"
-	version = "0.1.7"
+  name = "file-sync"
+  version = "0.1.7"
 )
+

@@ -41,7 +41,7 @@ func StartSSEClient(data Data) {
 
 	err := client.Subscribe("messages", func(msg *sse.Event) {
 		if string(msg.Event) == "connected" {
-			logger.Infof("Connected Event.")
+			logger.Infof("Event server connected.")
 			go watchFiles(data) // Recheck after network anomaly
 		} else if string(msg.Event) == "file" {
 			logger.Infof("File Event: %s", string(msg.Data))

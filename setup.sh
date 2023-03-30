@@ -27,6 +27,17 @@ mips*)
   ;;
 esac
 
+if [ "$(id -u)" != "0" ]; then
+  if [ "$OS" == "windows" ]; then
+    echo "This script must be run with administrator privileges on Windows."
+    echo "Right-click on the terminal and select 'Run as administrator', then try again."
+  else
+    echo "This script must be run with root privileges."
+    echo "Please run this script with sudo or as the root user."
+  fi
+  exit 1
+fi
+
 if [ "$OS" == "mingw"* ]; then
   OS="windows"
   TARGET_PATH="$SYSTEMROOT\System32"
