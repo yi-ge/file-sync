@@ -168,3 +168,55 @@ func TestFileSHA256(t *testing.T) {
 		t.Error("FileSHA256 should have returned an error for a nonexistent file")
 	}
 }
+
+func TestCreateDirectoryIfNotExists(t *testing.T) {
+	testCases := []struct {
+		name     string
+		filePath string
+		filename string
+		want     string
+	}{
+		{
+			name:     "directory without filename",
+			filePath: "testdir1",
+			filename: "file1.txt",
+			want:     "testdir1/file1.txt",
+		},
+		{
+			name:     "directory with filename",
+			filePath: "testdir2/file2.txt",
+			filename: "",
+			want:     "testdir2/file2.txt",
+		},
+		{
+			name:     "directory with filename",
+			filePath: "testdir3/file3.txt",
+			filename: "file4.txt",
+			want:     "testdir3/file3.txt",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Run the function and get the result
+			got, err := CreateDirectoryIfNotExists(tc.filePath, tc.filename)
+			if err != nil {
+				t.Fatalf("CreateDirectoryIfNotExists(%q, %q) returned error: %v", tc.filePath, tc.filename, err)
+			}
+
+			// Check if the expected path is the same as the returned path
+			if got != tc.want {
+				t.Errorf("CreateDirectoryIfNotExists(%q, %q) = %q; want %q", tc.filePath, tc.filename, got, tc.want)
+			}
+
+			// Check if the directory was created
+			dir := filepath.Dir(got)
+			if _, err := os.Stat(dir); os.IsNotExist(err) {
+				t.Errorf("directory %q was not created", dir)
+			}
+
+			// Clean up the created directories
+			os.RemoveAll(dir)
+		})
+	}
+}

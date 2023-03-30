@@ -104,36 +104,21 @@ func FileSHA256(filePath string) (string, error) {
 	return hashValue, nil
 }
 
+// CreateDirectoryIfNotExists This function, CreateDirectoryIfNotExists(filePath, filename string) (string, error), takes two string arguments, filePath and filename. The function first checks if the given filePath contains a filename. If it does not, it means that the provided filePath is a directory, and the function appends the filename to the path. Next, the function extracts the directory in which the file is located and checks if the directory exists. If the directory does not exist, it creates a new directory. Finally, the function returns the updated file path.
 func CreateDirectoryIfNotExists(filePath, filename string) (string, error) {
-	// filePath is a file path or a directory
-	info, err := os.Stat(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// File or directory does not exist, create directory
-			err = os.MkdirAll(filePath, 0755)
-			if err != nil {
-				return "", err
-			}
-		} else {
-			return "", err
-		}
-	} else if !info.IsDir() {
-		// If it is a file
-		dir := filepath.Dir(filePath) // Get the path to the folder where the file is located
-		_, err := os.Stat(dir)
-		if os.IsNotExist(err) {
-			// Folder does not exist, create folder
-			err = os.MkdirAll(dir, 0755)
-			if err != nil {
-				return "", err
-			}
-		}
+	hasExt := filepath.Ext(filePath) != ""
+
+	if !hasExt {
+		filePath = filepath.Join(filePath, filename)
 	}
 
-	// If filePath is a directory
-	if info != nil && info.IsDir() {
-		newFilePath := filepath.Join(filePath, filename) // Add the filename variable
-		return newFilePath, nil
+	dir := filepath.Dir(filePath)
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return filePath, nil
