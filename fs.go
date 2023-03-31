@@ -17,13 +17,18 @@ func fsInit() error {
 	if err != nil {
 		return err
 	}
-	homeDir := u.HomeDir
 
-	if homeDir == "" {
-		return fmt.Errorf("could not find home directory")
+	if configPath == "" {
+		homeDir := u.HomeDir
+
+		if homeDir == "" {
+			return fmt.Errorf("could not find home directory")
+		}
+
+		workDir = filepath.Join(homeDir, ".file-sync")
+	} else {
+		workDir = configPath
 	}
-
-	workDir = filepath.Join(homeDir, ".file-sync")
 
 	utils.MakeDirIfNotExist(workDir)
 
