@@ -862,8 +862,6 @@ func command(s service.Service) {
 								if err != nil {
 									fmt.Println("Error setting arguments:", err)
 								}
-
-								return nil
 							}
 
 							return s.Install()
