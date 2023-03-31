@@ -57,8 +57,23 @@ if (-not $args[0]) {
   $email = $args[0]
 }
 
+# Check if the second argument is provided
+if ($args[1]) {
+  $arg2 = $args[1]
+} else {
+  $arg2 = ""
+}
+
+# Check if the third argument is provided
+if ($args[2]) {
+  $arg3 = $args[2]
+} else {
+  $arg3 = ""
+}
+
 Write-Host "File-sync login..."
-& "${targetPath}\file-sync" --login $email
+$targetPath = "Path\to\file-sync" # Replace with the correct path to file-sync
+& "${targetPath}\file-sync" --login $email $arg2 $arg3
 
 
 Write-Host "Registering file-sync as a service..."

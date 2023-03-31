@@ -93,7 +93,21 @@ else
   email="$1"
 fi
 
-sudo file-sync --login "$email" || {
+# Check if the second argument is provided
+if [ -n "$2" ]; then
+  arg2="$2"
+else
+  arg2=""
+fi
+
+# Check if the third argument is provided
+if [ -n "$3" ]; then
+  arg3="$3"
+else
+  arg3=""
+fi
+
+sudo file-sync --login "$email" $arg2 $arg3 || {
   echo "Failed to login file-sync"
   true
 }
