@@ -31,8 +31,8 @@ if [ "$(id -u)" != "0" ]; then
   if [ "$OS" == "windows" ]; then
     echo "This script must be run with administrator privileges on Windows."
     echo "Right-click on the terminal and select 'Run as administrator', then try again."
+    exit 1
   fi
-  exit 1
 fi
 
 if [ "$OS" == "mingw"* ]; then
