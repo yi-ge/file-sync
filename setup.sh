@@ -88,8 +88,22 @@ file-sync -v || {
   exit 1
 }
 
+echo "File-sync login..."
+
+if [ -z "$1" ]; then
+  read -p "Please enter your email: " email
+else
+  email="$1"
+fi
+
+sudo file-sync --login "$email" || {
+  echo "Failed to login file-sync"
+  true
+}
+
 echo "Registering file-sync as a service..."
-sudo file-sync service enable || {
+config_dir="$HOME/.file-sync"
+sudo file-sync service enable --config-dir "$config_dir" || {
   echo "Failed to register file-sync as a service, but continuing anyway."
   true
 }

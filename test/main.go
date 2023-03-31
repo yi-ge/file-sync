@@ -29,10 +29,10 @@ func main() {
 		server1 := serverPair[0]
 		server2 := serverPair[1]
 
-		installFileSync(server1)
+		installFileSync(server1, email)
 		login(server1, email, password)
 
-		installFileSync(server2)
+		installFileSync(server2, email)
 		login(server2, email, password)
 
 		filename := createFile(server1)
@@ -62,8 +62,8 @@ func main() {
 	cleanup(testServers[0][1], password)
 }
 
-func installFileSync(server string) {
-	cmd := fmt.Sprintf(`ssh %s "curl -sSL https://file-sync.yizcore.xyz/setup.sh | bash"`, server)
+func installFileSync(server string, email string) {
+	cmd := fmt.Sprintf(`ssh %s "curl -sSL https://file-sync.yizcore.xyz/setup.sh | bash -s -- a@wyr.me"`, server)
 	runCommand(cmd)
 }
 

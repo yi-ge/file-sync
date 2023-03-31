@@ -51,8 +51,19 @@ try {
     exit 1
 }
 
+if (-not $args[0]) {
+  $email = Read-Host -Prompt "Please enter your email"
+} else {
+  $email = $args[0]
+}
+
+Write-Host "File-sync login..."
+& "${targetPath}\file-sync" --login $email
+
+
 Write-Host "Registering file-sync as a service..."
-& "${TARGET_PATH}\file-sync" service enable
+$configDir = Join-Path -Path $env:USERPROFILE -ChildPath ".file-sync"
+& "${targetPath}\file-sync" service enable --config-dir $configDir
 
 Write-Host "Starting file-sync service..."
 & "${TARGET_PATH}\file-sync" service start

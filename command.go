@@ -1,0 +1,922 @@
+package main
+
+import (
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/AlecAivazis/survey/v2"
+	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/fatih/color"
+	"github.com/kardianos/service"
+	"github.com/urfave/cli/v3"
+	"github.com/yi-ge/file-sync/utils"
+)
+
+func command(s service.Service) {
+	app := &cli.App{
+		Name:    "file-sync",
+		Version: configInstance.GetVersion(),
+		Usage:   "Automatically sync single file.",
+		Suggest: true,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "login",
+				Value: "",
+				Usage: "login by email",
+				Action: func(ctx *cli.Context, email string) error {
+					machineName := ""
+					if ctx.NArg() == 2 {
+						password = ctx.Args().Get(0)
+						machineName = ctx.Args().Get(1)
+					} else {
+						if ctx.NArg() == 1 {
+							password = ctx.Args().Get(0)
+						} else {
+							prompt := &survey.Password{
+								Message: "Enter your password: ",
+							}
+							survey.AskOne(prompt, &password)
+						}
+
+						hostname, err := os.Hostname()
+						if err != nil {
+							panic(err)
+						}
+
+						prompt2 := &survey.Input{
+							Message: "Enter a name for this machine: ",
+							Default: hostname,
+						}
+						survey.AskOne(prompt2, &machineName)
+					}
+
+					err := login(email, password, machineName)
+					if err != nil {
+						color.Red("Login failure.")
+						color.Red(err.Error())
+					} else {
+						color.Blue("Login and register your device successfully!")
+					}
+					return nil
+				},
+			},
+			&cli.BoolFlag{
+				Name:        "config",
+				DefaultText: "https://file-sync.openapi.site/",
+				Usage:       "HTTP API server URL",
+				Required:    false,
+				Action: func(ctx *cli.Context, b bool) error {
+					url := ""
+					if ctx.NArg() > 0 {
+						url = ctx.Args().Get(0)
+					} else {
+						reset := false
+						promptReset := &survey.Confirm{
+							Message: "Are you reset server URL?",
+						}
+						survey.AskOne(promptReset, &reset)
+
+						if reset {
+							err := delConfig()
+							if err != nil {
+								color.Red(err.Error())
+								return nil
+							}
+							delCache()
+
+							color.Blue("Reset server URL successfully!")
+							return nil
+						} else {
+							return nil
+						}
+					}
+
+					if utils.CheckURL(url) != nil {
+						color.Red("Invalid URL")
+						return nil
+					}
+
+					err := setConfig(url)
+
+					if err != nil {
+						color.Red(err.Error())
+					}
+
+					return nil
+				},
+			},
+			&cli.BoolFlag{
+				Name: "info",
+				// Aliases:  []string{"version"},
+				Required: false,
+				Usage:    "display system information",
+				Action: func(ctx *cli.Context, b bool) error {
+					color.Blue("file-sync version: " + configInstance.GetVersion())
+					color.Blue("HTTP API server URL: " + apiURL)
+
+					return nil
+				},
+			},
+			&cli.BoolFlag{
+				Name:        "remove-device",
+				Aliases:     []string{"rd"},
+				DefaultText: "current machine",
+				Required:    false,
+				Usage:       "remove device by device id",
+				Action: func(ctx *cli.Context, b bool) error {
+					s := ""
+					if ctx.NArg() > 0 {
+						s = ctx.Args().Get(0)
+						if ctx.NArg() > 1 {
+							password = ctx.Args().Get(1)
+						}
+					}
+					removeMachineId := ""
+					removeMachineName := ""
+					data, err := getData()
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					if s == "" || s == "current" {
+						removeMachineId = data.MachineId
+						removeMachineName = data.MachineName
+					} else {
+						devices, err := listDevices(data)
+						if err != nil {
+							color.Red(err.Error())
+							return err
+						}
+
+						for i := 0; i < devices.Size(); i++ {
+							machineId := devices.Get(i, "machineId").ToString()
+							if strings.Contains(machineId, s) {
+								removeMachineId = machineId
+								encryptedRemoveMachineName := devices.Get(i, "machineName").ToString()
+								removeMachineName, err = utils.AESCTRDecryptWithBase64(encryptedRemoveMachineName, []byte(data.Verify))
+								if err != nil {
+									color.Red(err.Error())
+									return nil
+								}
+								break
+							}
+						}
+
+						if removeMachineId == "" {
+							pattern := "\\d+"
+							result, err := regexp.MatchString(pattern, s)
+							if err != nil {
+								color.Red(err.Error())
+								return err
+							}
+
+							if result {
+								index, err := strconv.Atoi(s)
+								if err != nil {
+									color.Red(err.Error())
+									return err
+								}
+								removeMachineId = devices.Get(index-1, "machineId").ToString()
+								encryptedRemoveMachineName := devices.Get(index-1, "machineName").ToString()
+								removeMachineName, err = utils.AESCTRDecryptWithBase64(encryptedRemoveMachineName, []byte(data.Verify))
+								if err != nil {
+									color.Red(err.Error())
+									return nil
+								}
+							} else {
+								err = errors.New("invalid machine id")
+								color.Red(err.Error())
+								return err
+							}
+						}
+					}
+
+					if removeMachineId == "" {
+						err = errors.New("invalid machine id")
+						color.Red(err.Error())
+						return err
+					}
+
+					if ctx.NArg() < 2 {
+						del := false
+						promptDel := &survey.Confirm{
+							Message: "Are you sure to remove the device (" + removeMachineName + " ID:" + removeMachineId[:10] + ")?",
+						}
+						survey.AskOne(promptDel, &del)
+
+						if !del {
+							return nil
+						}
+
+						if password == "" {
+							prompt := &survey.Password{
+								Message: "Enter your password: ",
+							}
+							survey.AskOne(prompt, &password)
+						}
+					}
+
+					machineKey, res := checkPassword(data, password)
+					if res && machineKey != "" {
+						res, err := removeDevice(machineKey, data, removeMachineId)
+						if err != nil {
+							color.Red("Remove device failure.")
+							color.Red(err.Error())
+						}
+
+						if res != "" {
+							color.Green("Remove device successfully!")
+							delCache()
+						} else {
+							color.Red("Remove device failure. Unknown error.")
+						}
+					} else {
+						color.Red("Password incorrect!")
+					}
+
+					return nil
+				},
+			},
+			&cli.BoolFlag{
+				Name:    "list-device",
+				Aliases: []string{"ld"},
+				Usage:   "list registered device",
+				Action: func(cCtx *cli.Context, b bool) error {
+					if b {
+						data, err := getData()
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						devices, err := listDevices(data)
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+						displayRowSet := mapset.NewSet("id", "machineKey")
+						if devices.Size() > 0 {
+							printDeviceTable(devices, displayRowSet, true, false, []byte(data.Verify))
+						} else {
+							color.Red("No registered devices.")
+						}
+					}
+
+					return nil
+				},
+			},
+		},
+		Commands: []*cli.Command{
+			{
+				Name:            "add",
+				Aliases:         []string{"a"},
+				Usage:           "Add a file to sync list",
+				HelpName:        "add",
+				SkipFlagParsing: false,
+				ArgsUsage:       "[fileId] [path]",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "name",
+						DefaultText: "defined by file",
+						Value:       "",
+						Usage:       "name of the file display",
+					},
+					&cli.StringFlag{
+						Name:        "machineId",
+						DefaultText: "current device",
+						Value:       "",
+						Usage:       "target machine ID",
+					},
+				},
+				Action: func(cCtx *cli.Context) error {
+					if cCtx.NArg() == 0 {
+						return cli.ShowSubcommandHelp(cCtx)
+					}
+
+					data, err := getData()
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					var (
+						actionMachineId = ""
+						fileName        = ""
+						filePath        = ""
+						fileId          = ""
+						isNewFile       = false
+						sha256          = ""
+					)
+
+					privateKeyEncrypted, err := getPrivateKey()
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					decrypted, privateKey, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+					if err != nil || !decrypted {
+						color.Red((errors.New("secret decrypt error: " + err.Error())).Error())
+						return nil
+					}
+
+					if cCtx.Args().Get(1) != "" {
+						inputArg := cCtx.Args().Get(0)
+						filePath = cCtx.Args().Get(1)
+
+						configs, err := listConfigs(data)
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						for i := 0; i < configs.Size(); i++ {
+							theFileId := configs.Get(i, "fileId").ToString()
+							if strings.Contains(theFileId, inputArg) {
+								fileId = theFileId
+								fileNameEncrypted := configs.Get(i, "fileName").ToString()
+								fileNameBase64, err := base64.URLEncoding.DecodeString(fileNameEncrypted)
+								if err != nil {
+									color.Red(err.Error())
+									return nil
+								}
+								fileName = string(utils.RsaDecrypt([]byte(fileNameBase64), privateKey))
+								break
+							}
+						}
+
+						if fileId == "" {
+							pattern := "\\d+"
+							result, err := regexp.MatchString(pattern, inputArg)
+							if err != nil {
+								color.Red(err.Error())
+								return err
+							}
+
+							if result {
+								index, err := strconv.Atoi(inputArg)
+								if err != nil {
+									color.Red(err.Error())
+									return err
+								}
+								fileId = configs.Get(index-1, "fileId").ToString()
+								fileNameEncrypted := configs.Get(index-1, "fileName").ToString()
+								fileNameBase64, err := base64.URLEncoding.DecodeString(fileNameEncrypted)
+								if err != nil {
+									color.Red(err.Error())
+									return nil
+								}
+								fileName = string(utils.RsaDecrypt([]byte(fileNameBase64), privateKey))
+							} else {
+								err = errors.New("invalid file id")
+								color.Red(err.Error())
+								return err
+							}
+						}
+
+						if fileId == "" {
+							err = errors.New("invalid file id")
+							color.Red(err.Error())
+							return err
+						}
+
+						color.Blue("Action file (" + fileName + " ID:" + fileId[:10] + ").")
+					} else {
+						filePath = cCtx.Args().Get(0)
+						sha256, err = utils.FileSHA256(filePath)
+						if err != nil {
+							color.Red(err.Error())
+						}
+						fileId = utils.GetSha1Str(sha256)
+						isNewFile = true
+					}
+
+					if !filepath.IsAbs(filePath) {
+						filePath, err = filepath.Abs(filePath)
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+					}
+
+					if cCtx.String("name") != "" {
+						fileName = cCtx.String("name")
+					} else {
+						fileName = filepath.Base(filePath)
+					}
+
+					if cCtx.String("machineId") != "" {
+						s := cCtx.String("machineId")
+						actionMachineId = ""
+						actionMachineName := ""
+
+						if s == "" {
+							actionMachineId = data.MachineId
+							actionMachineName = data.MachineName
+						} else {
+							devices, err := listDevices(data)
+							if err != nil {
+								color.Red(err.Error())
+								return err
+							}
+
+							for i := 0; i < devices.Size(); i++ {
+								machineId := devices.Get(i, "machineId").ToString()
+								if strings.Contains(machineId, s) {
+									actionMachineId = machineId
+									encryptedActionMachineName := devices.Get(i, "machineName").ToString()
+									actionMachineName, err = utils.AESCTRDecryptWithBase64(encryptedActionMachineName, []byte(data.Verify))
+									if err != nil {
+										color.Red(err.Error())
+										return nil
+									}
+									break
+								}
+							}
+
+							if actionMachineId == "" {
+								pattern := "\\d+"
+								result, err := regexp.MatchString(pattern, s)
+								if err != nil {
+									color.Red(err.Error())
+									return err
+								}
+
+								if result {
+									index, err := strconv.Atoi(s)
+									if err != nil {
+										color.Red(err.Error())
+										return err
+									}
+									actionMachineId = devices.Get(index-1, "machineId").ToString()
+									encryptedActionMachineName := devices.Get(index-1, "machineName").ToString()
+									actionMachineName, err = utils.AESCTRDecryptWithBase64(encryptedActionMachineName, []byte(data.Verify))
+									if err != nil {
+										color.Red(err.Error())
+										return nil
+									}
+								} else {
+									err = errors.New("invalid machine id")
+									color.Red(err.Error())
+									return err
+								}
+							}
+						}
+
+						if actionMachineId == "" {
+							err = errors.New("invalid machine id")
+							color.Red(err.Error())
+							return err
+						}
+
+						color.Blue("Action machine: " + actionMachineName + "(" + actionMachineId + ")")
+					} else {
+						actionMachineId = data.MachineId
+					}
+
+					// fmt.Println("name: ", name)
+					// fmt.Println("fileId: ", fileId)
+					// fmt.Println("actionMachineId: ", actionMachineId)
+					// fmt.Println("path: ", filePath)
+
+					json, err := addConfig(fileId, fileName, filePath, actionMachineId, data)
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+					color.Blue("The file (" + fileName + " ID:" + json.Get("fileId").ToString()[:10] + ") was successfully added to the sync item.")
+					delCache()
+
+					if isNewFile {
+						fileName = filepath.Base(filePath)
+						f, err := os.ReadFile(filePath)
+						if err != nil {
+							fmt.Println("read fail", err)
+						}
+						fileContent := string(f)
+						timestamp := time.Now().UnixNano() / 1e6
+						err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+					} else {
+						exists, _ := utils.FileExists(filePath)
+						if exists {
+							color.Blue("The file (" + fileName + " ID:" + json.Get("fileId").ToString()[:10] + ") already exists.")
+							actionVersion := ""
+							prompt := &survey.Select{
+								Message: "Please select the version you want to keep:",
+								Options: []string{"remote", "local"},
+							}
+							survey.AskOne(prompt, &actionVersion)
+							if actionVersion == "local" {
+								fileName = filepath.Base(filePath)
+								f, err := os.ReadFile(filePath)
+								if err != nil {
+									fmt.Println("read fail", err)
+								}
+								fileContent := string(f)
+								timestamp := time.Now().UnixNano() / 1e6
+								err = fileUpload(fileId, fileName, sha256, fileContent, timestamp, data)
+								if err != nil {
+									color.Red(err.Error())
+									return nil
+								}
+								return nil
+							}
+						}
+						filePath, err = utils.CreateDirectoryIfNotExists(filePath, fileName)
+						if err != nil {
+							color.Red(err.Error())
+							return nil
+						}
+
+						json, err := fileDownload(fileId, data)
+						if err != nil {
+							color.Red(err.Error())
+						}
+
+						contentEncrypted := json.Get("content").ToString()
+						contentBase64, err := base64.URLEncoding.DecodeString(contentEncrypted)
+						if err != nil {
+							logger.Errorf(err.Error())
+							return nil
+						}
+						content := utils.RsaDecrypt([]byte(contentBase64), privateKey)
+
+						res, err := utils.WriteByteFile(filePath, []byte(content), 0, true)
+						if err != nil {
+							color.Red(err.Error())
+						}
+
+						if !res {
+							color.Red("The file (" + fileName + " ID:" + json.Get("fileId").ToString()[:10] + ") write failure.")
+						}
+					}
+
+					if watcher != nil {
+						// add file to watch
+						watcher.Add(filePath)
+					}
+
+					return nil
+				},
+			},
+			{
+				Name:    "list",
+				Aliases: []string{"l"},
+				Usage:   "Sync files list",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:  "all",
+						Usage: "Display all items",
+					},
+				},
+				Action: func(cCtx *cli.Context) error {
+					data, err := getData()
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					privateKeyEncrypted, err := getPrivateKey()
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					decrypted, privateKey, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+					if err != nil || !decrypted {
+						color.Red((errors.New("secret decrypt error: " + err.Error())).Error())
+						return nil
+					}
+
+					isCache := false
+					configs, err := listConfigs(data)
+					if err != nil {
+						configsCache, cacheErr := getCache()
+						if cacheErr != nil {
+							color.Red(err.Error())
+							return err
+						}
+						configs = configsCache
+						isCache = true
+						color.Red("Request server failed, cached data is shown here: ")
+					} else {
+						setCache(configs)
+					}
+					displayRowSet := mapset.NewSet("id", "machineId", "attribute", "createdAt")
+					hiddenLongPath := true
+					if cCtx.Bool("all") {
+						displayRowSet = mapset.NewSet("id", "attribute")
+						hiddenLongPath = false
+					}
+
+					if configs != nil && configs.Size() > 0 {
+						printConfigTable(configs, displayRowSet, true, hiddenLongPath, string(privateKey), []byte(data.Verify))
+						if isCache {
+							color.Red("Request server failed, above is cached data!")
+						}
+					} else {
+						color.Red("No file config.")
+					}
+					return nil
+				},
+			},
+			{
+				Name:      "remove",
+				Aliases:   []string{"r"},
+				Usage:     "Remove a file config in sync list",
+				ArgsUsage: "[fileId]",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "machineId",
+						DefaultText: "current device",
+						Value:       "",
+						Usage:       "target machine ID",
+					},
+				},
+				Action: func(cCtx *cli.Context) error {
+					if cCtx.NArg() == 0 {
+						return cli.ShowSubcommandHelp(cCtx)
+					}
+
+					data, err := getData()
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					privateKeyEncrypted, err := getPrivateKey()
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					privateKeyHex, err := base64.RawURLEncoding.DecodeString(string(privateKeyEncrypted))
+					if err != nil {
+						color.Red(err.Error())
+						return nil
+					}
+
+					decrypted, privateKey, err := utils.AESMACDecryptBytes(privateKeyHex, data.RsaPrivateKeyPassword)
+
+					if err != nil || !decrypted {
+						color.Red((errors.New("secret decrypt error: " + err.Error())).Error())
+						return nil
+					}
+
+					actionMachineId := data.MachineId
+
+					if cCtx.String("machineId") != "" {
+						s := cCtx.String("machineId")
+						actionMachineId = ""
+						actionMachineName := ""
+
+						if s == "" {
+							actionMachineId = data.MachineId
+							actionMachineName = data.MachineName
+						} else {
+							devices, err := listDevices(data)
+							if err != nil {
+								color.Red(err.Error())
+								return err
+							}
+
+							for i := 0; i < devices.Size(); i++ {
+								machineId := devices.Get(i, "machineId").ToString()
+								if strings.Contains(machineId, s) {
+									actionMachineId = machineId
+									encryptedActionMachineName := devices.Get(i, "machineName").ToString()
+									actionMachineName, err = utils.AESCTRDecryptWithBase64(encryptedActionMachineName, []byte(data.Verify))
+									if err != nil {
+										color.Red(err.Error())
+										return nil
+									}
+									break
+								}
+							}
+
+							if actionMachineId == "" {
+								pattern := "\\d+"
+								result, err := regexp.MatchString(pattern, s)
+								if err != nil {
+									color.Red(err.Error())
+									return err
+								}
+
+								if result {
+									index, err := strconv.Atoi(s)
+									if err != nil {
+										color.Red(err.Error())
+										return err
+									}
+									actionMachineId = devices.Get(index-1, "machineId").ToString()
+									actionMachineName = devices.Get(index-1, "machineName").ToString()
+								} else {
+									err = errors.New("invalid machine id")
+									color.Red(err.Error())
+									return err
+								}
+							}
+						}
+
+						if actionMachineId == "" {
+							err = errors.New("invalid machine id")
+							color.Red(err.Error())
+							return err
+						}
+
+						color.Blue("Action machine: " + actionMachineName + "(" + actionMachineId + ")")
+					}
+
+					fileId := ""
+					fileName := ""
+					inputArg := cCtx.Args().First()
+
+					configs, err := listConfigs(data)
+					if err != nil {
+						color.Red(err.Error())
+					}
+
+					for i := 0; i < configs.Size(); i++ {
+						theFileId := configs.Get(i, "fileId").ToString()
+						if strings.Contains(theFileId, inputArg) {
+							fileId = theFileId
+							fileNameEncrypted := configs.Get(i, "fileName").ToString()
+							fileNameBase64, err := base64.URLEncoding.DecodeString(fileNameEncrypted)
+							if err != nil {
+								color.Red(err.Error())
+								return nil
+							}
+							fileName = string(utils.RsaDecrypt([]byte(fileNameBase64), privateKey))
+							break
+						}
+					}
+
+					if fileId == "" {
+						pattern := "\\d+"
+						result, err := regexp.MatchString(pattern, inputArg)
+						if err != nil {
+							color.Red(err.Error())
+							return err
+						}
+
+						if result {
+							index, err := strconv.Atoi(inputArg)
+							if err != nil {
+								color.Red(err.Error())
+								return err
+							}
+							fileId = configs.Get(index-1, "fileId").ToString()
+							fileNameEncrypted := configs.Get(index-1, "fileName").ToString()
+							fileNameBase64, err := base64.URLEncoding.DecodeString(fileNameEncrypted)
+							if err != nil {
+								color.Red(err.Error())
+								return nil
+							}
+							fileName = string(utils.RsaDecrypt([]byte(fileNameBase64), privateKey))
+						} else {
+							err = errors.New("invalid file id")
+							color.Red(err.Error())
+							return err
+						}
+					}
+
+					if fileId == "" {
+						err = errors.New("invalid file id")
+						color.Red(err.Error())
+						return err
+					}
+
+					del := false
+					promptDel := &survey.Confirm{
+						Message: "Are you sure to remove the file (" + fileName + " ID:" + fileId[:10] + ") config?",
+					}
+					survey.AskOne(promptDel, &del)
+
+					if !del {
+						return nil
+					}
+
+					err = removeConfig(fileId, actionMachineId, data)
+					if err != nil {
+						color.Red("Remove config failure.")
+						color.Red(err.Error())
+						return nil
+					}
+
+					color.Green("Remove config successfully!")
+					delCache()
+
+					return nil
+				},
+			},
+			{
+				Name:    "service",
+				Aliases: []string{"s"},
+				Usage:   "Control the system service",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "enable",
+						Usage: "set to boot service",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:        "config-dir",
+								DefaultText: "",
+								Value:       "",
+								Usage:       "config directory path",
+							},
+						},
+						Action: func(cCtx *cli.Context) error {
+							if cCtx.String("config-dir") != "" {
+								// modify Arguments
+								newArgs := []string{"--config-dir", cCtx.String("config-dir")}
+
+								// Use reflection to modify Arguments
+								err := setArguments(s, newArgs)
+								if err != nil {
+									fmt.Println("Error setting arguments:", err)
+								}
+
+								return nil
+							}
+
+							return s.Install()
+						},
+					},
+					{
+						Name:  "disable",
+						Usage: "disable the service",
+						Action: func(cCtx *cli.Context) error {
+							return s.Uninstall()
+						},
+					},
+					{
+						Name:  "start",
+						Usage: "start the file sync service",
+						Action: func(cCtx *cli.Context) error {
+							return s.Start()
+						},
+					},
+					{
+						Name:  "stop",
+						Usage: "stop the file sync service",
+						Action: func(cCtx *cli.Context) error {
+							return s.Stop()
+						},
+					},
+					{
+						Name:  "status",
+						Usage: "get the service status",
+						Action: func(cCtx *cli.Context) error {
+							status, err := s.Status()
+							if err != nil {
+								fmt.Print("Info: ", err.Error())
+								return nil
+							}
+							fmt.Print(status)
+							return nil
+						},
+					},
+				},
+			},
+		},
+		Action: func(cCtx *cli.Context) error {
+			if cCtx.NumFlags() == 0 {
+				return cli.ShowAppHelp(cCtx)
+			}
+			return nil
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
+
+	os.Exit(0)
+}

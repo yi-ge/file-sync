@@ -289,7 +289,7 @@ Modify the `.env.example` file in the root directory, and the environment variab
 
 **Note:** In `Windows` platform, `PHP_CLI_SERVER_WORKERS` environment variable is not supported, so please use the recommended latest version of `xampp` or `LAMP`, `LNMP` configuration for development and debugging in `Windows` platform. VSCode launch configuration is not applicable to `Windows` platform, do not use F5 to start the debugging environment.
 
-### *unix
+#### *unix
 
 Install PHP 5.4+ and MySQL 5.4+, enable `shmop` extension, configure `Zend Debugger`, and create a database named `file_sync`.
 
