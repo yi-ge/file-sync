@@ -107,7 +107,7 @@ else
   arg3=""
 fi
 
-sudo file-sync --login "$email" $arg2 $arg3 || {
+file-sync --login "$email" $arg2 $arg3 || {
   echo "Failed to login file-sync"
   true
 }
