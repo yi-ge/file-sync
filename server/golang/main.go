@@ -66,6 +66,9 @@ func main() {
 	// Create the FileSyncHandler
 	fileSyncHandler := FileSyncHandler{DB: db}
 
+	// Create the EventStreamHandler
+	eventStreamHandler := EventStreamHandler{DB: db}
+
 	r.GET("/", HomeHandler)
 	r.POST("/device/add", deviceAddHandler.postXhr)
 	r.POST("/device/list", deviceListHandler.postXhr)
@@ -74,6 +77,7 @@ func main() {
 	r.POST("/file/config", fileConfigHandler.postXhr)
 	r.POST("/file/check", fileCheckHandler.postXhr)
 	r.POST("/file/sync", fileSyncHandler.postXhr)
+	r.GET("/event_stream", eventStreamHandler.eventStream)
 
 	r.Run(":8080")
 }

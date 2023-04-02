@@ -34,6 +34,10 @@ type FileSyncHandler struct {
 	DB *gorm.DB
 }
 
+type EventStreamHandler struct {
+	DB *gorm.DB
+}
+
 type DeviceAddRequest struct {
 	Email       string `json:"email"`
 	MachineId   string `json:"machineId"`
