@@ -195,7 +195,7 @@ docker run xx:file-sync-server
 
 ### PHP
 
-require PHP >= v5.4 （64位）， 建议开启`shmop`和`mbstring`拓展以获得更好的体验。
+require PHP >= v5.4 （64位），需允许设置`set_time_limit`，建议开启`shmop`和`mbstring`拓展以获得更好的体验。
 
 上传`server/php`目录下的文件到php根目录(不包括`test`文件夹)。
 
@@ -262,7 +262,7 @@ location / {
 
 ## 服务器端API
 
-`file-sync`程序目前使用`HTTP API`完成同步交互，服务器向客户端的推送使用Server-Sent Events（SSE）技术实现。目前~~已完成~~PHP版本的服务器端API。
+`file-sync`程序目前使用`HTTP API`完成同步交互，服务器向客户端的推送使用Server-Sent Events（SSE）技术实现。目前~~已完成~~PHP和Golang版本的服务器端API。
 
 <details><summary>CLICK ME</summary>
 <p>

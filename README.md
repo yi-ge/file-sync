@@ -260,7 +260,7 @@ location / {
 
 ## Server-side API
 
-The `file-sync` program currently uses the `HTTP API` to complete synchronization interactions, Server-to-client push is implemented using Server-Sent Events (SSE). Currently ~~ has completed ~~ the PHP version of the server-side API.
+The `file-sync` program currently uses the `HTTP API` to complete synchronization interactions, Server-to-client push is implemented using Server-Sent Events (SSE). Currently ~~ has completed ~~ the PHP and Golang version of the server-side API.
 
 <details><summary>CLICK ME</summary>
 <p>
@@ -291,7 +291,7 @@ Modify the `.env.example` file in the root directory, and the environment variab
 
 #### *unix
 
-Install PHP 5.4+ and MySQL 5.4+, enable `shmop` extension, configure `Zend Debugger`, and create a database named `file_sync`.
+Install PHP 5.4+ and MySQL 5.4+, `set_time_limit` needs to be allowed, enable `shmop` extension, configure `Zend Debugger`, and create a database named `file_sync`.
 
 Refer to the `.env.example` file in the root directory and the `server/php/.env.example` file for detailed environment variable configuration. Configure the `.htaccess` file according to the `Use self-hosted server` above.
 
