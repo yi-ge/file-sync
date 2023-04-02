@@ -96,9 +96,9 @@ func watchFiles(data Data) {
 					if !ok {
 						return
 					}
-					log.Println("event:", event)
+					log.Println("File system event:", event)
 					if event.Has(fsnotify.Write) {
-						log.Println("modified file:", event.Name)
+						log.Println("Modified file:", event.Name)
 						filePath := event.Name
 						checkAndUploadFile(filePath, configs, privateKey, data)
 					}
@@ -124,7 +124,7 @@ func watchFiles(data Data) {
 					if !ok {
 						return
 					}
-					log.Println("error:", err)
+					log.Println("File system error:", err)
 				}
 			}
 		}()
@@ -159,8 +159,8 @@ func watchFiles(data Data) {
 
 		logger.Infof("Watcher is Working.")
 	} else {
-		logger.Error(err)
-		logger.Info("retry watcher")
+		logger.Errorf("Watch file error: %s\n", err.Error())
+		logger.Info("Retry watcher")
 		time.Sleep(time.Duration(2) * time.Second)
 		watchFiles(data)
 	}

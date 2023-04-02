@@ -23,7 +23,7 @@ func (p *program) Start(s service.Service) error {
 		flag.Parse()
 
 		if configPath != "" {
-			logger.Info("Config directory path: %s\n", configPath)
+			logger.Infof("Config directory path: %s\n", configPath)
 		} else {
 			logger.Info("No config directory path provided")
 		}
