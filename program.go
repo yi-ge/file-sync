@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"time"
 
 	"github.com/kardianos/service"
@@ -19,14 +18,7 @@ func (p *program) Start(s service.Service) error {
 		command(s)
 	} else {
 		logger.Info("Running under service manager.")
-		flag.StringVar(&configPath, "config-dir", "", "Path to the configuration directory")
-		flag.Parse()
 
-		if configPath != "" {
-			logger.Infof("Config directory path: %s\n", configPath)
-		} else {
-			logger.Info("No config directory path provided")
-		}
 		// Start should not block. Do the actual work async.
 		go p.run()
 	}

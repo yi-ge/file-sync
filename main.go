@@ -18,7 +18,6 @@ var (
 	password       string
 	configInstance = config.Instance()
 	watcher        *fsnotify.Watcher
-	configPath     string
 )
 
 func main() {

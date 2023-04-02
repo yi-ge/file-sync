@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/user"
 	"path/filepath"
 
@@ -18,7 +19,10 @@ func fsInit() error {
 		return err
 	}
 
-	if configPath == "" {
+	if len(os.Args) >= 3 && os.Args[1] == "--config-dir" {
+		workDir = os.Args[2]
+		fmt.Printf("Config directory path: %s\n", workDir)
+	} else {
 		homeDir := u.HomeDir
 
 		if homeDir == "" {
@@ -26,8 +30,6 @@ func fsInit() error {
 		}
 
 		workDir = filepath.Join(homeDir, ".file-sync")
-	} else {
-		workDir = configPath
 	}
 
 	utils.MakeDirIfNotExist(workDir)
