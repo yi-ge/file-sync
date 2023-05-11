@@ -14,7 +14,7 @@ import (
 func StartSSEClient(data Data) {
 	timestamp := time.Now().UnixNano() / 1e6
 	emailSha1 := utils.GetSha1Str(data.Email)
-	eventURL := apiURL + "/events.php?email=" + emailSha1 + "&machineId=" + data.MachineId + "&timestamp=" + strconv.FormatInt(timestamp, 10)
+	eventURL := apiURL + "/events?email=" + emailSha1 + "&machineId=" + data.MachineId + "&timestamp=" + strconv.FormatInt(timestamp, 10)
 	// fmt.Println(eventURL)
 	client := sse.NewClient(eventURL)
 	client.AutoReconnect = true

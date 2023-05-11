@@ -179,88 +179,17 @@ A: `file-sync` require `fsnotify`, `fsnotify` requires support from underlying O
 
 ## Use self-hosted server deploy (optional)
 
-You can choose to deploy it in your own server with the Docker or build your own PHP runtime.
-
-The server side uses standard HTTP API, no rare module is used, which is very compatible, so you can deploy the program in most of the Virtual Hosting.
-
-The PHP code provided by default needs to be used with `MySQL 5.4+` database.
+You can choose to deploy the binaries with Docker or on your own server.
 
 ### Docker
 
 ```bash
-docker run xx:file-sync-server
+docker run xx:file-sync-server (TODO)
 ```
-
-### PHP
-
-require PHP >= v5.4 (64bit), It is recommended to turn on `shmop` and `mbstring` expansion for a better experience.
-
-Upload the files in the `server/php` directory to the php root directory (excluding the `test` folder).
-
-Note: Never upload the `.env` file from the PHP code directory to the `Server`/`Virtual Host` to avoid leaking the database configuration information.
-
-#### Server Configuration
-
-<details><summary>CLICK ME</summary>
-<p>
-
-##### Apache
-
-You may need to add the following snippet in your Apache HTTP server virtual host configuration or **.htaccess** file.
-
-```apacheconf
-RewriteEngine on
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond $1 !^(index\.php)
-RewriteRule ^(.*)$ /index.php/$1 [L]
-```
-
-Alternatively, if you’re lucky enough to be using a version of Apache greater than 2.2.15, then you can instead just use this one, single line:
-
-```apacheconf
-FallbackResource /index.php
-```
-
-##### IIS
-
-For IIS you will need to install URL Rewrite for IIS and then add the following rule to your `web.config`:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-    <system.webServer>
-        <rewrite>
-          <rule name="Toro" stopProcessing="true">
-            <match url="^(.*)$" ignoreCase="false" />
-              <conditions logicalGrouping="MatchAll">
-                <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false" negate="true" />
-                <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
-                <add input="{R:1}" pattern="^(index\.php)" ignoreCase="false" negate="true" />
-              </conditions>
-            <action type="Rewrite" url="/index.php/{R:1}" />
-          </rule>
-        </rewrite>
-    </system.webServer>
-</configuration>
-```
-
-##### Nginx
-
-Under the `server` block of your virtual host configuration, you only need to add three lines.
-
-```conf
-location / {
-  try_files $uri $uri/ /index.php?$args;
-}
-```
-
-</p>
-</details>
 
 ## Server-side API
 
-The `file-sync` program currently uses the `HTTP API` to complete synchronization interactions, Server-to-client push is implemented using Server-Sent Events (SSE). Currently ~~ has completed ~~ the PHP and Golang version of the server-side API.
+The `file-sync` program currently uses the `HTTP API` to complete synchronization interactions, Server-to-client push is implemented using Server-Sent Events (SSE).
 
 <details><summary>CLICK ME</summary>
 <p>
@@ -278,24 +207,6 @@ Due to frequent changes, currently listed in the Chinese README： [简体中文
 ### Start the development and debugging environment
 
 In the root file directory has `.env` environment variable configuration file, `GO_ENV` development environment value is `development` and production environment value is `production`.
-
-#### Windows
-
-Install `xampp` and configure `Zend Debugger`, change `DocumentRoot` and `Directory` in `httpd.conf` file to the absolute path where the `server/php` folder is located.
-
-Start Apache, MySQL, and go to `http://localhost/phpmyadmin` to create a database named `file_sync`.
-
-Modify the `.env.example` file in the root directory, and the environment variables in the `server/php/.htaccess.example` file.
-
-**Note:** In `Windows` platform, `PHP_CLI_SERVER_WORKERS` environment variable is not supported, so please use the recommended latest version of `xampp` or `LAMP`, `LNMP` configuration for development and debugging in `Windows` platform. VSCode launch configuration is not applicable to `Windows` platform, do not use F5 to start the debugging environment.
-
-#### *unix
-
-Install PHP 5.4+ and MySQL 5.4+, `set_time_limit` needs to be allowed, enable `shmop` extension, configure `Zend Debugger`, and create a database named `file_sync`.
-
-Refer to the `.env.example` file in the root directory and the `server/php/.env.example` file for detailed environment variable configuration. Configure the `.htaccess` file according to the `Use self-hosted server` above.
-
-Please set the `PHP_CLI_SERVER_WORKERS` environment variable to a value greater than `1` in order to test the working state of PHP in a Multi-threaded environment (relying on PHP CLI version >= 7.4.0, if you are developing with a lower version of PHP, please configure the `LNMP` or `LAMP` environment).
 
 </p>
 </details>

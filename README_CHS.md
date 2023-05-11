@@ -181,88 +181,17 @@ file-sync remove --machineId <machine id> <file id>
 
 ## 使用自托管服务器部署 （可选）
 
-可以选择借助Docker或者自行搭建PHP运行环境在自己的服务器中部署。
-
-服务器端采用标准的HTTP API方式进行交互，没有用到罕见模块，极具兼容性，因此可以将程序部署在绝大部分虚拟主机中。
-
-默认提供的PHP代码需要搭配MySQL 5.4+数据库使用。
+可以选择借助Docker或者自行在自己的服务器中部署二进制文件。
 
 ### Docker
 
 ```bash
-docker run xx:file-sync-server
+docker run xx:file-sync-server (TODO)
 ```
-
-### PHP
-
-require PHP >= v5.4 （64位），需允许设置`set_time_limit`，建议开启`shmop`和`mbstring`拓展以获得更好的体验。
-
-上传`server/php`目录下的文件到php根目录(不包括`test`文件夹)。
-
-注意，千万不要把PHP代码目录下的`.env`文件上传到服务器/虚拟主机，以免泄露数据库配置信息。
-
-#### Server Configuration
-
-<details><summary>CLICK ME</summary>
-<p>
-
-##### Apache
-
-You may need to add the following snippet in your Apache HTTP server virtual host configuration or **.htaccess** file.
-
-```apacheconf
-RewriteEngine on
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond $1 !^(index\.php)
-RewriteRule ^(.*)$ /index.php/$1 [L]
-```
-
-Alternatively, if you’re lucky enough to be using a version of Apache greater than 2.2.15, then you can instead just use this one, single line:
-
-```apacheconf
-FallbackResource /index.php
-```
-
-##### IIS
-
-For IIS you will need to install URL Rewrite for IIS and then add the following rule to your `web.config`:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-    <system.webServer>
-        <rewrite>
-          <rule name="Toro" stopProcessing="true">
-            <match url="^(.*)$" ignoreCase="false" />
-              <conditions logicalGrouping="MatchAll">
-                <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false" negate="true" />
-                <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
-                <add input="{R:1}" pattern="^(index\.php)" ignoreCase="false" negate="true" />
-              </conditions>
-            <action type="Rewrite" url="/index.php/{R:1}" />
-          </rule>
-        </rewrite>
-    </system.webServer>
-</configuration>
-```
-
-##### Nginx
-
-Under the `server` block of your virtual host configuration, you only need to add three lines.
-
-```conf
-location / {
-  try_files $uri $uri/ /index.php?$args;
-}
-```
-
-</p>
-</details>
 
 ## 服务器端API
 
-`file-sync`程序目前使用`HTTP API`完成同步交互，服务器向客户端的推送使用Server-Sent Events（SSE）技术实现。目前~~已完成~~PHP和Golang版本的服务器端API。
+`file-sync`程序目前使用`HTTP API`完成同步交互，服务器向客户端的推送使用Server-Sent Events（SSE）技术实现。
 
 <details><summary>CLICK ME</summary>
 <p>
@@ -477,24 +406,6 @@ Return：
 ### 进入开发调试环境
 
 在根目录`.env`环境变量配置文件中，`GO_ENV`开发环境为`development`，生产环境为`production`。
-
-#### Windows
-
-安装`xampp`并配置`Zend Debugger`，修改`httpd.conf`文件中`DocumentRoot`与`Directory`为`server/php`文件夹所在的绝对路径。
-
-启动Apache、MySQL，进入`http://localhost/phpmyadmin`创建名为`file_sync`的数据库。
-
-修改根目录下的`.env.example`文件，以及`server/php/.htaccess.example`文件中的环境变量。根据上文中`使用自托管服务器`的内容配置`.htaccess`文件。
-
-**注意：** 在`Windows`平台，不支持`PHP_CLI_SERVER_WORKERS`环境变量，因此在`Windows`平台的开发调试请使用推荐的最新版`xampp`或`LAMP`、`LNMP`配置。VSCode的launch配置不适用于`Windows`平台，不要使用F5启动`Windows`下的调试环境。
-
-#### *unix
-
-安装PHP 5.4+以及MySQL 5.4+，启用`shmop`拓展，配置`Zend Debugger`，创建名为`file_sync`的数据库。
-
-详细环境变量配置参考根目录下的`.env.example`文件，以及`server/php/.env.example`文件。
-
-请设置`PHP_CLI_SERVER_WORKERS`环境变量为大于`1`的数值以便测试多线程环境下PHP的工作状态（依赖PHP CLI version >= 7.4.0，如果使用低版本PHP进行开发，请配置`LNMP`或`LAMP`环境）。
 
 </p>
 </details>

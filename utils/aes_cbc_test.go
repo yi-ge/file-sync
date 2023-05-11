@@ -23,7 +23,7 @@ func TestAesCBC(t *testing.T) {
 	}
 	t.Logf("Decrypt text: %s", decryptData)
 
-	// PHP AES-256-CBC encryptText
+	// AES-256-CBC encryptText
 	encryptText := "DF8xTlJ03oyOohmsoEB33UsybnM30vopCIiRxr4-DVzAajKBaxOrOypRHPkCltfM"
 
 	rawText, err := AESCBCDecryptSafety(key, encryptText)
